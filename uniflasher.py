@@ -17,9 +17,17 @@ class MainWindow(wx.Frame):
 
         if os.name == 'nt':
             self.osname = 'Windows'
+            self.adbpath = 'android-sdk-windows'
         else:
             # Linux on linux boxes Darwin on MacOS
             self.osname = os.uname()[0]
+            self.adbpath = 'android-sdk-' \
+                    + {'Darwin': 'mac', 'Linux': 'linux'}[self.osname] \
+                    + '_x86'
+
+        self.adbpath = os.path.join(self.adbpath, 'tools')
+
+        print self.adbpath
 
         self.dirname=''
         self.bootimg=''
@@ -32,7 +40,7 @@ class MainWindow(wx.Frame):
         filemenu= wx.Menu()
         menuAbout= filemenu.Append(wx.ID_ABOUT, '&About',
                                    'Information about this program')
-        menuExit = filemenu.Append(wx.ID_EXIT, 'E&xit',
+        menuExit = filemenu.Append(wx.ID_EXIT, '&Quit',
                                    'Terminate the program')
 
         # Creating the menubar.
@@ -47,13 +55,13 @@ class MainWindow(wx.Frame):
         # Window contents
         mainSizer = wx.GridBagSizer(wx.VERTICAL)
 
-        self.bootbtn = wx.Button(self, label="boot image")
+        self.bootbtn = wx.Button(self, label='boot image')
         self.Bind(wx.EVT_BUTTON, self.on_click_boot, self.bootbtn)
         mainSizer.Add(self.bootbtn, pos=(0, 0))
         self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
         mainSizer.Add(self.bootctrl, pos=(0, 1))
 
-        self.systembtn = wx.Button(self, label="system image")
+        self.systembtn = wx.Button(self, label='system image')
         mainSizer.Add(self.systembtn, pos=(1, 0))
         self.Bind(wx.EVT_BUTTON, self.on_click_bsgystem, self.systembtn)
         self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
@@ -83,7 +91,7 @@ class MainWindow(wx.Frame):
         '''Select and return an img file'''
         filename = ''
         dlg = wx.FileDialog(self, 'Choose a file', self.dirname,
-                            defaultFile='', wildcard='*.*', style=wx.OPEN)
+                            defaultFile='', wildcard='*.mg', style=wx.OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
