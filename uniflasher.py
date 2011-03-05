@@ -17,17 +17,20 @@ class MainWindow(wx.Frame):
 
         if os.name == 'nt':
             self.osname = 'Windows'
-            self.adbpath = 'android-sdk-windows'
+            self.toolspath = 'android-sdk-windows'
         else:
             # Linux on linux boxes Darwin on MacOS
             self.osname = os.uname()[0]
-            self.adbpath = 'android-sdk-' \
+            self.toolspath = 'android-sdk-' \
                     + {'Darwin': 'mac', 'Linux': 'linux'}[self.osname] \
                     + '_x86'
 
-        self.adbpath = os.path.join(self.adbpath, 'tools')
-
-        print self.adbpath
+        self.toolspath = os.path.join(self.toolspath, 'tools')
+        self.adb = os.path.join(self.toolspath, 'adb')
+        self.fastboot = os.path.join(self.toolspath, 'fastboot')
+        if self.osname == 'Windows':
+            self.adb += '.exe'
+            self.fastboot += '.exe'
 
         self.dirname=''
         self.bootimg=''
