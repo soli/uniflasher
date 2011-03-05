@@ -10,7 +10,9 @@ for the LG Eve GW620
 '''
 
 import wx
-import os, subprocess
+import os
+import subprocess
+
 
 class MainWindow(wx.Frame):
     '''Main window of the OpenEtna flasher
@@ -49,61 +51,63 @@ class MainWindow(wx.Frame):
         self.adb = os.path.join(self.toolspath, 'adb')
         self.fastboot = os.path.join(self.toolspath, 'fastboot')
 
-        self.dirname=''
+        self.dirname = ''
 
-        self.bootimg=''
-        self.systemimg=''
+        self.bootimg = ''
+        self.systemimg = ''
 
         wx.Frame.__init__(self, None, title='Hello ' + self.osname,
-                          size=(300,200))
+                          size=(300, 200))
 
         # Setting up the menu.
-        filemenu= wx.Menu()
-        menuAbout= filemenu.Append(wx.ID_ABOUT, '&About',
+        filemenu = wx.Menu()
+        menuabout = filemenu.Append(wx.ID_ABOUT, '&About',
                                    'Information about this program')
-        menuQuit = filemenu.Append(wx.ID_EXIT, '&Quit',
+        menuquit = filemenu.Append(wx.ID_EXIT, '&Quit',
                                    'Terminate the program')
 
         # Creating the menubar.
-        menuBar = wx.MenuBar()
-        menuBar.Append(filemenu, '&File')
-        self.SetMenuBar(menuBar)
+        menubar = wx.MenuBar()
+        menubar.Append(filemenu, '&File')
+        self.SetMenuBar(menubar)
 
         # Events.
-        self.Bind(wx.EVT_MENU, self.on_quit, menuQuit)
-        self.Bind(wx.EVT_MENU, self.on_about, menuAbout)
+        self.Bind(wx.EVT_MENU, self.on_quit, menuquit)
+        self.Bind(wx.EVT_MENU, self.on_about, menuabout)
 
         # Window contents
-        mainSizer = wx.GridBagSizer(wx.VERTICAL)
+        mainsizer = wx.GridBagSizer(wx.VERTICAL)
 
         self.bootbtn = wx.Button(self, label='boot image')
         self.Bind(wx.EVT_BUTTON, self.on_boot, self.bootbtn)
-        mainSizer.Add(self.bootbtn, pos=(0, 0))
+        mainsizer.Add(self.bootbtn, pos=(0, 0))
         self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
-        mainSizer.Add(self.bootctrl, pos=(0, 1))
+        mainsizer.Add(self.bootctrl, pos=(0, 1))
 
         self.systembtn = wx.Button(self, label='system image')
-        mainSizer.Add(self.systembtn, pos=(1, 0))
+        mainsizer.Add(self.systembtn, pos=(1, 0))
         self.Bind(wx.EVT_BUTTON, self.on_system, self.systembtn)
         self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
-        mainSizer.Add(self.systemctrl, pos=(1, 1))
+        mainsizer.Add(self.systemctrl, pos=(1, 1))
 
         self.devicesbtn = wx.Button(self, label='adb devices')
         self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
-        mainSizer.Add(self.devicesbtn, pos=(2, 0))
+        mainsizer.Add(self.devicesbtn, pos=(2, 0))
 
         self.wipebtn = wx.Button(self, label='wipe')
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
-        mainSizer.Add(self.wipebtn, pos=(2, 1))
+        mainsizer.Add(self.wipebtn, pos=(2, 1))
 
-        self.SetSizerAndFit(mainSizer)
+        self.SetSizerAndFit(mainsizer)
 
         self.Show()
 
-    def on_about(self,e):
+    def on_about(self, event):
+        '''About us?'''
         pass
 
-    def on_quit(self,e):
+    def on_quit(self, event):
+        '''Quit nicely'''
         self.Close(True)
 
     def on_boot(self, event):
@@ -136,12 +140,15 @@ class MainWindow(wx.Frame):
         '''wipe device'''
         do_and_log([self.fastboot, '-w'])
 
+
 def do_and_log(args):
+    '''print out a command, spawn a subprocess to execute it and print
+    the result'''
     print ' '.join(args)
     print subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
 
 if __name__ == '__main__':
-    '''Create the app, don't redirect stdout/stderr.'''
+    # Create the app, don't redirect stdout/stderr.
     app = wx.App(False)
     frame = MainWindow()
     app.MainLoop()
