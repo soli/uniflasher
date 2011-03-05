@@ -1,4 +1,4 @@
-#!/usr/bin/env VERSIONER_PYTHON_PREFER_32_BIT=yes python
+#!/usr/bin/env python
 # Copyright blah blah
 # License blah blah (GPL v2 ?)
 
@@ -22,45 +22,74 @@ class MainWindow(wx.Frame):
             self.osname = os.uname()[0]
 
         self.dirname=''
+        self.bootimg=''
+        self.systemimg=''
+
         wx.Frame.__init__(self, None, title='Hello ' + self.osname,
                           size=(300,200))
 
-        self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-
         # Setting up the menu.
         filemenu= wx.Menu()
-        menuOpen = filemenu.Append(wx.ID_OPEN, "&Open"," Open a file to edit")
-        menuAbout= filemenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
-        menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
+        menuAbout= filemenu.Append(wx.ID_ABOUT, '&About',
+                                   'Information about this program')
+        menuExit = filemenu.Append(wx.ID_EXIT, 'E&xit',
+                                   'Terminate the program')
 
         # Creating the menubar.
         menuBar = wx.MenuBar()
-        menuBar.Append(filemenu,"&File")
+        menuBar.Append(filemenu, '&File')
         self.SetMenuBar(menuBar)
 
         # Events.
-        self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
-        self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
-        self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
+        self.Bind(wx.EVT_MENU, self.on_exit, menuExit)
+        self.Bind(wx.EVT_MENU, self.on_about, menuAbout)
+
+        # Window contents
+        mainSizer = wx.GridBagSizer(wx.VERTICAL)
+
+        self.bootbtn = wx.Button(self, label="boot image")
+        self.Bind(wx.EVT_BUTTON, self.on_click_boot, self.bootbtn)
+        mainSizer.Add(self.bootbtn, pos=(0, 0))
+        self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
+        mainSizer.Add(self.bootctrl, pos=(0, 1))
+
+        self.systembtn = wx.Button(self, label="system image")
+        mainSizer.Add(self.systembtn, pos=(1, 0))
+        self.Bind(wx.EVT_BUTTON, self.on_click_bsgystem, self.systembtn)
+        self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
+        mainSizer.Add(self.systemctrl, pos=(1, 1))
+
+        self.SetSizerAndFit(mainSizer)
 
         self.Show()
 
-    def OnAbout(self,e):
+    def on_about(self,e):
         pass
 
-    def OnExit(self,e):
+    def on_exit(self,e):
         self.Close(True)
 
-    def OnOpen(self, event):
-        ''' Open a file'''
+    def on_click_boot(self, event):
+        '''Select boot.img'''
+        self.bootimg = self.get_img_file() or self.bootimg
+        self.bootctrl.SetValue(self.bootimg)
+
+    def on_click_bsgystem(self, event):
+        '''Select boot.img'''
+        self.systemimg = self.get_img_file() or self.systemimg
+        self.systemctrl.SetValue(self.systemimg)
+
+    def get_img_file(self):
+        '''Select and return an img file'''
+        filename = ''
         dlg = wx.FileDialog(self, 'Choose a file', self.dirname,
                             defaultFile='', wildcard='*.*', style=wx.OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
-            self.filename = dlg.GetFilename()
+            filename = dlg.GetFilename()
             self.dirname = dlg.GetDirectory()
-            self.control.SetValue(self.filename)
         dlg.Destroy()
+        return filename or ''
 
 if __name__ == '__main__':
     # Create a new app, don't redirect stdout/stderr to a window.
