@@ -54,7 +54,7 @@ class MainWindow(wx.Frame):
         self.systemimg = ''
 
         wx.Frame.__init__(self, None, title='Hello ' + self.osname,
-                          size=(300, 200))
+                          size=(500, 300))
 
         # Setting up the menu.
         filemenu = wx.Menu()
@@ -135,13 +135,42 @@ class MainWindow(wx.Frame):
 
     def on_wipe(self, event):
         '''wipe device'''
+        self._wipe()
+
+    def _wipe(self):
+        '''wipe device'''
         do_and_log([self.fastboot, '-w'])
 
+    def _reboot(self):
+        '''reboot device'''
+        do_and_log([self.adb, 'shell', 'reboot'])
+
+    def _flash(self, partition, imgfile):
+        '''flash some image to the given partition on device'''
+        do_and_log([self.fastboot, 'flash', partition, imgfile])
+
+    def _recovery(self):
+        '''fastboot boot everarecovery.img'''
+        do_and_log([self.fastboot, 'boot',
+                    os.path.join('imgs', 'everarecovery.img')])
+
+    def _flash_openetna(self):
+        if not self.bootimg:
+            # TODO nice dialogs...
+            print "You need to select a boot image first"
+            return
+        if not self.systemimg:
+            print "You need to select a system image first"
+            return
+        self._wipe()
+        self._flash('boot', self.bootimg)
+        self._flash('system', self.systemimg)
 
 def do_and_log(args):
     '''print out a command, spawn a subprocess to execute it and print
     the result'''
     print ' '.join(args)
+    # FIXME exception handling
     print subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
 
 if __name__ == '__main__':
