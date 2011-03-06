@@ -12,7 +12,7 @@ for the LG Eve GW620
 import wx
 import os
 import subprocess
-
+import time
 
 class MainWindow(wx.Frame):
     '''Main window of the OpenEtna flasher
@@ -131,7 +131,10 @@ class MainWindow(wx.Frame):
 
     def on_devices(self, event):
         '''check if some device is connected and found by adb'''
-        do_and_log([self.adb, 'devices'])
+        result = do_and_log([self.adb, 'devices'])
+        if result.find('recovery') >= 0:
+            print "The device is in recovery mode"
+        print result
 
     def on_wipe(self, event):
         '''wipe device'''
@@ -139,22 +142,23 @@ class MainWindow(wx.Frame):
 
     def _wipe(self):
         '''wipe device'''
-        do_and_log([self.fastboot, '-w'])
+        print_and_log([self.fastboot, '-w'])
 
     def _reboot(self):
         '''reboot device'''
-        do_and_log([self.adb, 'shell', 'reboot'])
+        print_and_log([self.adb, 'shell', 'reboot'])
 
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
-        do_and_log([self.fastboot, 'flash', partition, imgfile])
+        print_and_log([self.fastboot, 'flash', partition, imgfile])
 
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
-        do_and_log([self.fastboot, 'boot',
+        print_and_log([self.fastboot, 'boot',
                     os.path.join('imgs', 'everarecovery.img')])
 
     def _flash_openetna(self):
+        '''very basic OpenEtna flash, adapted from OpenEtnaflash.bat'''
         if not self.bootimg:
             # TODO nice dialogs...
             print "You need to select a boot image first"
@@ -166,12 +170,41 @@ class MainWindow(wx.Frame):
         self._flash('boot', self.bootimg)
         self._flash('system', self.systemimg)
 
+    def _wait_for_device(self):
+        time.sleep(10)
+
+    def _nandroid(self):
+        '''launch nandroid on device'''
+        print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
+                       '--norecovery', '--nomisc', '--nosplash1',
+                       '--nosplash2', '--defaultinput'])
+
+    def _simple_backup(self):
+        '''very basic backup, adapted from simplebackup.bat'''
+        self._recovery()
+        self._wait_for_device()
+        self._nandroid()
+        self._reboot()
+
 def do_and_log(args):
     '''print out a command, spawn a subprocess to execute it and print
     the result'''
     print ' '.join(args)
-    # FIXME exception handling
-    print subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+    try:
+        pipe = subprocess.Popen(args, stdout=subprocess.PIPE)
+        output =  pipe.communicate()[0]
+        if pipe.returncode != 0:
+            print pipe.returncode
+            return ''
+        else:
+            return output
+    except OSError, error:
+        # adb or fastboot not found
+        print error.strerror
+        return ''
+
+def print_and_log(args):
+    print do_and_log(args)
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
