@@ -37,21 +37,18 @@ class MainWindow(wx.Frame):
 
         if os.name == 'nt':
             self.osname = 'Windows'
-            self.toolspath = 'android-sdk-windows'
+            sdkpath = 'android-sdk-windows'
         else:
             # Linux on linux boxes Darwin on MacOS
             self.osname = os.uname()[0]
-            self.toolspath = 'android-sdk-' \
+            sdkpath = 'android-sdk-' \
                     + {'Darwin': 'mac', 'Linux': 'linux'}[self.osname] \
                     + '_x86'
 
-        # FIXME can be platform-tools for ADB and fastboot can be
-        # anywhere so... just use the SDK name?
-        # self.toolspath = os.path.join(self.toolspath, 'tools')
-        self.adb = os.path.join(self.toolspath, 'adb')
-        self.fastboot = os.path.join(self.toolspath, 'fastboot')
+        self.adb = os.path.join(sdkpath, 'adb')
+        self.fastboot = os.path.join(sdkpath, 'fastboot')
 
-        self.dirname = ''
+        self.lastdir = ''
 
         self.bootimg = ''
         self.systemimg = ''
@@ -112,25 +109,25 @@ class MainWindow(wx.Frame):
 
     def on_boot(self, event):
         '''Select boot.img'''
-        self.bootimg = self.get_img_file() or self.bootimg
+        self.bootimg = self._get_img_file() or self.bootimg
         self.bootctrl.SetValue(self.bootimg)
 
     def on_system(self, event):
         '''Select boot.img'''
-        self.systemimg = self.get_img_file() or self.systemimg
+        self.systemimg = self._get_img_file() or self.systemimg
         self.systemctrl.SetValue(self.systemimg)
 
-    def get_img_file(self):
+    def _get_img_file(self):
         '''Select and return an img file'''
         filename = ''
-        dlg = wx.FileDialog(self, 'Choose a file', self.dirname,
+        dlg = wx.FileDialog(self, 'Choose a file', self.lastdir,
                             defaultFile='', wildcard='*.img', style=wx.OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
-            self.dirname = dlg.GetDirectory()
+            self.lastdir = dlg.GetDirectory()
         dlg.Destroy()
-        return filename or ''
+        return filename and os.path.join(self.lastdir, filename) or ''
 
     def on_devices(self, event):
         '''check if some device is connected and found by adb'''
