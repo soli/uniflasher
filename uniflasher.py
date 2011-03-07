@@ -83,12 +83,18 @@ class MainWindow(wx.Frame):
         mainsizer.Add(self.bootbtn, pos=(0, 0))
         self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
         mainsizer.Add(self.bootctrl, pos=(0, 1))
+        self.flashbootbtn = wx.Button(self, label='flash boot')
+        self.Bind(wx.EVT_BUTTON, self.on_flashboot, self.flashbootbtn)
+        mainsizer.Add(self.flashbootbtn, pos=(0, 2))
 
         self.systembtn = wx.Button(self, label='system image')
         mainsizer.Add(self.systembtn, pos=(1, 0))
         self.Bind(wx.EVT_BUTTON, self.on_system, self.systembtn)
         self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
         mainsizer.Add(self.systemctrl, pos=(1, 1))
+        self.flashsystembtn = wx.Button(self, label='flash system')
+        self.Bind(wx.EVT_BUTTON, self.on_flashsystem, self.flashsystembtn)
+        mainsizer.Add(self.flashsystembtn, pos=(1, 2))
 
         self.devicesbtn = wx.Button(self, label='adb devices')
         self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
@@ -110,7 +116,23 @@ class MainWindow(wx.Frame):
         self.rebootbtn = wx.Button(self, label='reboot adb device')
         self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
         mainsizer.Add(self.rebootbtn, pos=(5, 0))
-
+		
+        self.recoverybtn = wx.Button(self, label='Launch Recovery')
+        self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
+        mainsizer.Add(self.recoverybtn, pos=(6, 0))
+		
+        self.backupbtn = wx.Button(self, label='Backup Phone')
+        self.Bind(wx.EVT_BUTTON, self.on_backup, self.backupbtn)
+        mainsizer.Add(self.backupbtn, pos=(7, 0))
+		
+        self.retorebtn = wx.Button(self, label='Restore last backup')
+        self.Bind(wx.EVT_BUTTON, self.on_restore, self.retorebtn)
+        mainsizer.Add(self.retorebtn, pos=(7, 1))
+		
+        self.logcatbtn = wx.Button(self, label='ADB Logcat')
+        self.Bind(wx.EVT_BUTTON, self.on_logcat, self.logcatbtn)
+        mainsizer.Add(self.logcatbtn, pos=(8, 0))
+		
         self.SetSizerAndFit(mainsizer)
 
         self.Show()
@@ -172,7 +194,7 @@ class MainWindow(wx.Frame):
 
     def _wipe(self):
         '''wipe device'''
-        print_and_log([self.fastboot, '-w'])
+        print_and_log([self.fastboot, '-w'],timeout=10)
 
     def on_reboot(self, event):
         '''reboot adb device'''
@@ -180,12 +202,25 @@ class MainWindow(wx.Frame):
 
     def _reboot(self):
         '''reboot device'''
-        print_and_log([self.adb, 'reboot'], timeout=120)
+        print_and_log([self.adb, 'reboot'], timeout=10)
+		
 
+    def on_flashboot(self, event):
+        '''flash boot'''
+        self._flash('boot',self.bootimg)
+
+    def on_flashsystem(self, event):
+        '''flash system'''
+        self._flash('system',self.systemimg)
+	
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
         print_and_log([self.fastboot, 'flash', partition, imgfile],
-                      timeout=30)
+                      timeout=120)
+
+    def on_recovery(self, event):
+        '''Launch recovery on device'''
+        self._recovery()
 
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
@@ -210,18 +245,33 @@ class MainWindow(wx.Frame):
         '''ask adb to wait for the device to be ready'''
         print_and_log([self.adb, 'wait-for-device'])
 
-    def _nandroid(self):
-        '''launch nandroid on device'''
+    def on_backup(self, event):
+        '''start backup on SDCard'''
+        self._nandroid_backup()
+
+    def _nandroid_backup(self):
+        '''launch nandroid backup on device (#duration : about 160s) adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1 --nosplash2 --defaultinput'''
         print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                        '--norecovery', '--nomisc', '--nosplash1',
-                       '--nosplash2', '--defaultinput'])
+                       '--nosplash2', '--defaultinput'], timeout=170)
+
+    def on_restore(self, event):
+        '''start restore from SDCard'''
+        self._nandroid_restore()
+
+    def _nandroid_restore(self):
+        '''launch nandroid on device    shell sbin/nandroid-mobile.sh -r --defaultinput    '''
+        print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-r',
+                       '--defaultinput'], timeout=240)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
         self._recovery()
         # FIXME is that enough or should we add time.sleep(10) afterwards?
+        # response from ecaheti : adb wait-for-device should be enough to wait in 
+        # process, but if not, time.sleep should be made in _recovery()
         self._wait_for_device()
-        self._nandroid()
+        self._nandroid_backup()
         self._reboot()
 
     def _gapps(self):
@@ -236,7 +286,13 @@ class MainWindow(wx.Frame):
     def _kill_server(self):
         print_and_log([self.adb, 'kill-server'])
 
-    # TODO logcat...
+    def on_logcat(self, event):
+        '''launch device logcat'''
+        self._logcat()
+
+    def _logcat(self):
+        '''device logcat'''
+        print_and_log([self.adb, 'logcat'], timeout=100)
 
 
 def do_and_log(args, timeout=10, poll=0.1):
