@@ -12,7 +12,7 @@ for the LG Eve GW620
 import wx
 import os
 import subprocess
-# import time
+import time
 
 class MainWindow(wx.Frame):
     '''Main window of the OpenEtna flasher
@@ -175,6 +175,7 @@ class MainWindow(wx.Frame):
         self._flash('system', self.systemimg)
 
     def _wait_for_device(self):
+        '''ask adb to wait for the device to be ready'''
         print_and_log([self.adb, 'wait-for-device'])
 
     def _nandroid(self):
@@ -206,12 +207,19 @@ class MainWindow(wx.Frame):
     # TODO logcat...
 
 
-def do_and_log(args):
-    '''print out a command, spawn a subprocess to execute it and print
-    the result'''
+def do_and_log(args, timeout=120, poll=0.1):
+    '''print out a command, spawn a subprocess to execute it
+
+    kill the subprocess after a given timeout (active poll)'''
     print ' '.join(args)
+    elapsed = 0.0
     try:
         pipe = subprocess.Popen(args, stdout=subprocess.PIPE)
+        while pipe.poll() is None:
+            time.sleep(poll)
+            elapsed += poll
+            if elapsed > timeout:
+                pipe.terminate()
         output =  pipe.communicate()[0]
         if pipe.returncode != 0:
             print pipe.returncode
@@ -224,6 +232,7 @@ def do_and_log(args):
         return ''
 
 def print_and_log(args):
+    '''call do_and_log and print the returned process output'''
     print do_and_log(args)
 
 if __name__ == '__main__':
