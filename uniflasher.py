@@ -106,6 +106,7 @@ class MainWindow(wx.Frame):
 
     def on_quit(self, event):
         '''Quit nicely'''
+        self._kill_server()
         self.Close(True)
 
     def on_boot(self, event):
@@ -196,6 +197,11 @@ class MainWindow(wx.Frame):
         print_and_log([self.adb, 'remount'])
         print_and_log([self.abd, 'push', self.gapps, '/sdcard/'])
         self._reboot()
+
+    def _kill_server(self):
+        print_and_log([self.adb, 'kill-server'])
+
+    # TODO logcat...
 
 
 def do_and_log(args):
