@@ -35,6 +35,7 @@ class MainWindow(wx.Frame):
     def __init__(self):
         '''Perform initialization and launch main window'''
 
+        curpath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
         if os.name == 'nt':
             self.osname = 'Windows'
             sdkpath = 'android-sdk-windows'
@@ -45,6 +46,7 @@ class MainWindow(wx.Frame):
                     + {'Darwin': 'mac', 'Linux': 'linux'}[self.osname] \
                     + '_x86'
 
+        sdkpath = os.path.join(curpath, sdkpath)
         self.adb = os.path.join(sdkpath, 'adb')
         self.fastboot = os.path.join(sdkpath, 'fastboot')
 
