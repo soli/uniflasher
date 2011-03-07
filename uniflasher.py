@@ -98,6 +98,10 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
         mainsizer.Add(self.wipebtn, pos=(2, 1))
 
+        self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
+        self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
+        mainsizer.Add(self.fbdevicesbtn, pos=(3, 0))
+		
         self.SetSizerAndFit(mainsizer)
 
         self.Show()
@@ -140,6 +144,10 @@ class MainWindow(wx.Frame):
             print "The device is in recovery mode"
         print result
 
+    def on_fbdevices(self, event):
+        '''check if some device is connected and found by fastboot'''
+        result = do_and_log([self.fastboot, 'devices'])
+		
     def on_wipe(self, event):
         '''wipe device'''
         self._wipe()
