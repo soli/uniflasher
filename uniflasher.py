@@ -94,8 +94,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
         mainsizer.Add(self.devicesbtn, pos=(3, 0))
         self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
-        mainsizer.Add(self.ckbx_adb_ready, pos=(3, 1))        
-		
+        mainsizer.Add(self.ckbx_adb_ready, pos=(3, 1))
+
         self.wipebtn = wx.Button(self, label='wipe')
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
         mainsizer.Add(self.wipebtn, pos=(2, 0))
@@ -105,12 +105,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
         mainsizer.Add(self.fbdevicesbtn, pos=(4, 0))
         self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
-        mainsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))   
-		
+        mainsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))
+
         self.rebootbtn = wx.Button(self, label='reboot adb device')
         self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
         mainsizer.Add(self.rebootbtn, pos=(5, 0))
-		
+
         self.SetSizerAndFit(mainsizer)
 
         self.Show()
@@ -166,7 +166,6 @@ class MainWindow(wx.Frame):
             print "No device in fastboot"
             self.ckbx_fastb_ready.SetValue(False)
 
-
     def on_wipe(self, event):
         '''wipe device'''
         self._wipe()
@@ -178,20 +177,21 @@ class MainWindow(wx.Frame):
     def on_reboot(self, event):
         '''reboot adb device'''
         self._reboot()
-		
-		
+
     def _reboot(self):
         '''reboot device'''
-        print_and_log([self.adb, 'reboot'])
+        print_and_log([self.adb, 'reboot'], timeout=120)
 
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
-        print_and_log([self.fastboot, 'flash', partition, imgfile])
+        print_and_log([self.fastboot, 'flash', partition, imgfile],
+                      timeout=30)
 
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
         print_and_log([self.fastboot, 'boot',
-                    os.path.join('imgs', 'everarecovery.img')])
+                    os.path.join('imgs', 'everarecovery.img')],
+                     timeout=60)
 
     def _flash_openetna(self):
         '''very basic OpenEtna flash, adapted from OpenEtnaflash.bat'''
@@ -239,7 +239,7 @@ class MainWindow(wx.Frame):
     # TODO logcat...
 
 
-def do_and_log(args, timeout=120, poll=0.1):
+def do_and_log(args, timeout=10, poll=0.1):
     '''print out a command, spawn a subprocess to execute it
 
     kill the subprocess after a given timeout (active poll)'''
@@ -263,9 +263,9 @@ def do_and_log(args, timeout=120, poll=0.1):
         print error.strerror
         return ''
 
-def print_and_log(args):
+def print_and_log(*args, **kwargs):
     '''call do_and_log and print the returned process output'''
-    print do_and_log(args)
+    print do_and_log(*args, **kwargs)
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
