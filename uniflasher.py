@@ -121,23 +121,23 @@ class MainWindow(wx.Frame):
         self.rebootbtn = wx.Button(self, label='reboot adb device')
         self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
         mainsizer.Add(self.rebootbtn, pos=(5, 0))
-		
+
         self.recoverybtn = wx.Button(self, label='Launch Recovery')
         self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
         mainsizer.Add(self.recoverybtn, pos=(6, 0))
-		
+
         self.backupbtn = wx.Button(self, label='Backup Phone')
         self.Bind(wx.EVT_BUTTON, self.on_backup, self.backupbtn)
         mainsizer.Add(self.backupbtn, pos=(7, 0))
-		
+
         self.retorebtn = wx.Button(self, label='Restore last backup')
         self.Bind(wx.EVT_BUTTON, self.on_restore, self.retorebtn)
         mainsizer.Add(self.retorebtn, pos=(7, 1))
-		
+
         self.logcatbtn = wx.Button(self, label='ADB Logcat')
         self.Bind(wx.EVT_BUTTON, self.on_logcat, self.logcatbtn)
         mainsizer.Add(self.logcatbtn, pos=(8, 0))
-		
+
         self.SetSizerAndFit(mainsizer)
 
         self.Show()
@@ -199,7 +199,7 @@ class MainWindow(wx.Frame):
 
     def _wipe(self):
         '''wipe device'''
-        print_and_log([self.fastboot, '-w'],timeout=10)
+        print_and_log([self.fastboot, '-w'])
 
     def on_reboot(self, event):
         '''reboot adb device'''
@@ -207,8 +207,7 @@ class MainWindow(wx.Frame):
 
     def _reboot(self):
         '''reboot device'''
-        print_and_log([self.adb, 'reboot'], timeout=10)
-		
+        print_and_log([self.adb, 'reboot'])
 
     def on_flashboot(self, event):
         '''flash boot'''
@@ -217,7 +216,7 @@ class MainWindow(wx.Frame):
     def on_flashsystem(self, event):
         '''flash system'''
         self._flash('system',self.systemimg)
-	
+
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
         print_and_log([self.fastboot, 'flash', partition, imgfile],
@@ -230,13 +229,11 @@ class MainWindow(wx.Frame):
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
         print_and_log([self.fastboot, 'boot',
-                    os.path.join('imgs', 'everarecovery.img')],
-                     timeout=60)
+                    os.path.join('imgs', 'everarecovery.img')], timeout=60)
 
     def _flash_openetna(self):
         '''very basic OpenEtna flash, adapted from OpenEtnaflash.bat'''
         if not self.bootimg:
-            # TODO nice dialogs...
             print "You need to select a boot image first"
             return
         if not self.systemimg:
@@ -255,7 +252,10 @@ class MainWindow(wx.Frame):
         self._nandroid_backup()
 
     def _nandroid_backup(self):
-        '''launch nandroid backup on device (#duration : about 160s) adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1 --nosplash2 --defaultinput'''
+        '''launch nandroid backup on device (#duration : about 160s)
+
+        adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1
+            --nosplash2 --defaultinput'''
         print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                        '--norecovery', '--nomisc', '--nosplash1',
                        '--nosplash2', '--defaultinput'], timeout=170)
@@ -265,16 +265,15 @@ class MainWindow(wx.Frame):
         self._nandroid_restore()
 
     def _nandroid_restore(self):
-        '''launch nandroid on device    shell sbin/nandroid-mobile.sh -r --defaultinput    '''
+        '''launch nandroid on device
+
+        adb shell sbin/nandroid-mobile.sh -r --defaultinput'''
         print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-r',
                        '--defaultinput'], timeout=240)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
         self._recovery()
-        # FIXME is that enough or should we add time.sleep(10) afterwards?
-        # response from ecaheti : adb wait-for-device should be enough to wait in 
-        # process, but if not, time.sleep should be made in _recovery()
         self._wait_for_device()
         self._nandroid_backup()
         self._reboot()
