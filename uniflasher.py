@@ -101,7 +101,7 @@ class MainWindow(wx.Frame):
         self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
         self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
         mainsizer.Add(self.fbdevicesbtn, pos=(3, 0))
-		
+
         self.SetSizerAndFit(mainsizer)
 
         self.Show()
@@ -147,7 +147,8 @@ class MainWindow(wx.Frame):
     def on_fbdevices(self, event):
         '''check if some device is connected and found by fastboot'''
         result = do_and_log([self.fastboot, 'devices'])
-		
+        print result
+
     def on_wipe(self, event):
         '''wipe device'''
         self._wipe()
