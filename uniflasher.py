@@ -10,11 +10,12 @@ for the LG Eve GW620
 '''
 
 import wx
+from wx import xrc
 import os
 import subprocess
 import time
 
-class MainWindow(wx.Frame):
+class UniFlasher(wx.App):
     '''Main window of the OpenEtna flasher
 
     Should be able to do:
@@ -32,7 +33,7 @@ class MainWindow(wx.Frame):
     - launch restore if recovery launched
     '''
 
-    def __init__(self):
+    def OnInit(self):
         '''Perform initialization and launch main window'''
 
         if os.name == 'nt':
@@ -61,64 +62,64 @@ class MainWindow(wx.Frame):
         self.systemimg = ''
         self.gapps = ''
 
-        wx.Frame.__init__(self, None, title='Hello ' + self.osname,
-                          size=(500, 300))
+        self.res = xrc.XmlResource('uniflashergui.xrc')
+        self.frame = self.res.LoadFrame(None, 'frame_1')
 
-        # Setting up the menu.
-        filemenu = wx.Menu()
-        menuabout = filemenu.Append(wx.ID_ABOUT, '&About',
-                                   'Information about this program')
-        menuquit = filemenu.Append(wx.ID_EXIT, '&Quit',
-                                   'Terminate the program')
+        # # Setting up the menu.
+        # filemenu = wx.Menu()
+        # menuabout = filemenu.Append(wx.ID_ABOUT, '&About',
+                                   # 'Information about this program')
+        # menuquit = filemenu.Append(wx.ID_EXIT, '&Quit',
+                                   # 'Terminate the program')
 
-        # Creating the menubar.
-        menubar = wx.MenuBar()
-        menubar.Append(filemenu, '&File')
-        self.SetMenuBar(menubar)
+        # # Creating the menubar.
+        # menubar = wx.MenuBar()
+        # menubar.Append(filemenu, '&File')
+        # self.SetMenuBar(menubar)
 
-        # Events.
-        self.Bind(wx.EVT_MENU, self.on_quit, menuquit)
-        self.Bind(wx.EVT_MENU, self.on_about, menuabout)
+        # # Events.
+        # self.Bind(wx.EVT_MENU, self.on_quit, menuquit)
+        # self.Bind(wx.EVT_MENU, self.on_about, menuabout)
 
-        # Window contents
-        mainsizer = wx.GridBagSizer(wx.VERTICAL)
+        # # Window contents
+        # mainsizer = wx.GridBagSizer(wx.VERTICAL)
 
-        self.bootbtn = wx.Button(self, label='boot image')
-        self.Bind(wx.EVT_BUTTON, self.on_boot, self.bootbtn)
-        mainsizer.Add(self.bootbtn, pos=(0, 0))
-        self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
-        mainsizer.Add(self.bootctrl, pos=(0, 1))
+        # self.bootbtn = wx.Button(self, label='boot image')
+        # self.Bind(wx.EVT_BUTTON, self.on_boot, self.bootbtn)
+        # mainsizer.Add(self.bootbtn, pos=(0, 0))
+        # self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
+        # mainsizer.Add(self.bootctrl, pos=(0, 1))
 
-        self.systembtn = wx.Button(self, label='system image')
-        mainsizer.Add(self.systembtn, pos=(1, 0))
-        self.Bind(wx.EVT_BUTTON, self.on_system, self.systembtn)
-        self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
-        mainsizer.Add(self.systemctrl, pos=(1, 1))
+        # self.systembtn = wx.Button(self, label='system image')
+        # mainsizer.Add(self.systembtn, pos=(1, 0))
+        # self.Bind(wx.EVT_BUTTON, self.on_system, self.systembtn)
+        # self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
+        # mainsizer.Add(self.systemctrl, pos=(1, 1))
 
-        self.devicesbtn = wx.Button(self, label='adb devices')
-        self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
-        mainsizer.Add(self.devicesbtn, pos=(3, 0))
-        self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
-        mainsizer.Add(self.ckbx_adb_ready, pos=(3, 1))
+        # self.devicesbtn = wx.Button(self, label='adb devices')
+        # self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
+        # mainsizer.Add(self.devicesbtn, pos=(3, 0))
+        # self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
+        # mainsizer.Add(self.ckbx_adb_ready, pos=(3, 1))
 
-        self.wipebtn = wx.Button(self, label='wipe')
-        self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
-        mainsizer.Add(self.wipebtn, pos=(2, 0))
+        # self.wipebtn = wx.Button(self, label='wipe')
+        # self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
+        # mainsizer.Add(self.wipebtn, pos=(2, 0))
 
+        # self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
+        # self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
+        # mainsizer.Add(self.fbdevicesbtn, pos=(4, 0))
+        # self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
+        # mainsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))
 
-        self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
-        self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
-        mainsizer.Add(self.fbdevicesbtn, pos=(4, 0))
-        self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
-        mainsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))
+        # self.rebootbtn = wx.Button(self, label='reboot adb device')
+        # self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
+        # mainsizer.Add(self.rebootbtn, pos=(5, 0))
 
-        self.rebootbtn = wx.Button(self, label='reboot adb device')
-        self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
-        mainsizer.Add(self.rebootbtn, pos=(5, 0))
+        # self.SetSizerAndFit(mainsizer)
 
-        self.SetSizerAndFit(mainsizer)
-
-        self.Show()
+        self.frame.Show()
+        return True
 
     def on_about(self, event):
         '''About us?'''
@@ -274,6 +275,5 @@ def print_and_log(*args, **kwargs):
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
-    app = wx.App(False)
-    frame = MainWindow()
+    app = UniFlasher(False)
     app.MainLoop()

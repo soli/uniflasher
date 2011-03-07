@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+
+<resource version="2.3.0.1">
+    <object class="wxFrame" name="frame_1">
+        <style>wxCAPTION|wxCLOSE_BOX|wxMINIMIZE_BOX|wxMAXIMIZE_BOX|wxSYSTEM_MENU|wxRESIZE_BORDER|wxCLIP_CHILDREN</style>
+        <title>OpenEtna uniFlasher</title>
+        <focused>1</focused>
+        <object class="wxMenuBar" name="frame_1_menubar">
+           <object class="wxMenu">
+                <label>File</label>
+                <object class="wxMenuItem">
+                    <label>Exit</label>
+                </object>
+            </object>
+            <object class="wxMenu">
+                <label>Help</label>
+                <object class="wxMenuItem">
+                    <label>About</label>
+                </object>
+                <object class="separator"/>
+                <object class="wxMenuItem">
+                    <label>OpenEtna website</label>
+                </object>
+                <object class="wxMenuItem">
+                    <label>Search Forum</label>
+                </object>
+            </object>
+        </object>
+        <object class="wxStatusBar" name="frame_1_statusbar">
+            <fields>1</fields>
+            <style>wxST_SIZEGRIP</style>
+            <widths>-1</widths>
+        </object>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <object class="wxNotebook" name="notebook_1">
+                    <usenotebooksizer>1</usenotebooksizer>
+                    <object class="notebookpage">
+                    <label>Basic</label>
+                    <object class="wxPanel" name="notebook_1_pane_1">
+                        <style>wxTAB_TRAVERSAL</style>
+                        <object class="wxBoxSizer">
+                            <orient>wxVERTICAL</orient>
+                            <object class="sizeritem">
+                                <flag>wxALIGN_CENTER_HORIZONTAL</flag>
+                                <object class="wxBitmapButton" name="bitmap_button_1">
+                                    <style>wxNO_BORDER</style>
+                                    <bitmap>imgs/openetnalogo.jpg</bitmap>
+                                </object>
+                            </object>
+                            <object class="sizeritem">
+                                <option>1</option>
+                                <flag>wxEXPAND</flag>
+                                <object class="wxPanel" name="panel_1">
+                                    <style>wxTAB_TRAVERSAL</style>
+                                    <object class="wxGridSizer">
+                                        <hgap>5</hgap>
+                                        <rows>3</rows>
+                                        <cols>3</cols>
+                                        <vgap>5</vgap>
+                                        <object class="sizeritem">
+                                            <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                            <object class="wxButton" name="simble_backup">
+                                                <focused>1</focused>
+                                                <label>Simple Backup</label>
+                                            </object>
+                                        </object>
+                                        <object class="sizeritem">
+                                            <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                            <object class="wxButton" name="start_flashing">
+                                                <focused>1</focused>
+                                                <label>Start Flashing</label>
+                                            </object>
+                                        </object>
+                                        <object class="sizeritem">
+                                            <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                            <object class="wxButton" name="install_gapps">
+                                                <label>Install Gapps</label>
+                                            </object>
+                                        </object>
+                                    </object>
+                                </object>
+                            </object>
+                        </object>
+                    </object>
+                    </object>
+                    <object class="notebookpage">
+                    <label>Advanced</label>
+                    <object class="wxPanel" name="notebook_1_pane_2">
+                        <style>wxTAB_TRAVERSAL</style>
+                        <object class="wxBoxSizer">
+                            <orient>wxVERTICAL</orient>
+                            <object class="sizeritem">
+                                <flag>wxALIGN_CENTER_HORIZONTAL</flag>
+                                <object class="wxBitmapButton" name="bitmap_button_2">
+                                    <style>wxNO_BORDER</style>
+                                    <bitmap>imgs/openetnalogo.jpg</bitmap>
+                                </object>
+                            </object>
+                            <object class="sizeritem">
+                                <option>1</option>
+                                <flag>wxEXPAND</flag>
+                                <object class="wxGridSizer">
+                                    <hgap>5</hgap>
+                                    <rows>3</rows>
+                                    <cols>3</cols>
+                                    <vgap>5</vgap>
+                                    <object class="sizeritem">
+                                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <object class="wxButton" name="Fastboot_w">
+                                            <label>Fastboot -w</label>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <object class="wxButton" name="install_boot">
+                                            <label>Install Boot</label>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <object class="wxButton" name="install_system">
+                                            <label>Install System</label>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <object class="wxButton" name="Start_ADBshell">
+                                            <label>Start ADB shell</label>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <object class="wxButton" name="logcat">
+                                            <label>Generate Logcat</label>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <object class="wxButton" name="amonrecovery">
+                                            <label>Load Amon Recovery</label>
+                                        </object>
+                                    </object>
+                                </object>
+                            </object>
+                        </object>
+                    </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+    <object class="wxDialog" name="dialog_1">
+        <style>wxDEFAULT_DIALOG_STYLE</style>
+        <title>dialog_1</title>
+    </object>
+</resource>
