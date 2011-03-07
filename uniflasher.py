@@ -92,16 +92,25 @@ class MainWindow(wx.Frame):
 
         self.devicesbtn = wx.Button(self, label='adb devices')
         self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
-        mainsizer.Add(self.devicesbtn, pos=(2, 0))
-
+        mainsizer.Add(self.devicesbtn, pos=(3, 0))
+        self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
+        mainsizer.Add(self.ckbx_adb_ready, pos=(3, 1))        
+		
         self.wipebtn = wx.Button(self, label='wipe')
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
-        mainsizer.Add(self.wipebtn, pos=(2, 1))
+        mainsizer.Add(self.wipebtn, pos=(2, 0))
+
 
         self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
         self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
-        mainsizer.Add(self.fbdevicesbtn, pos=(3, 0))
-
+        mainsizer.Add(self.fbdevicesbtn, pos=(4, 0))
+        self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
+        mainsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))   
+		
+        self.rebootbtn = wx.Button(self, label='reboot adb device')
+        self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
+        mainsizer.Add(self.rebootbtn, pos=(5, 0))
+		
         self.SetSizerAndFit(mainsizer)
 
         self.Show()
@@ -142,12 +151,21 @@ class MainWindow(wx.Frame):
         result = do_and_log([self.adb, 'devices'])
         if result.find('recovery') >= 0:
             print "The device is in recovery mode"
-        print result
+            self.ckbx_adb_ready.SetValue(True)
+        else:
+            print "No device in recovery mode"
+            self.ckbx_fastb_ready.SetValue(False)
 
     def on_fbdevices(self, event):
         '''check if some device is connected and found by fastboot'''
         result = do_and_log([self.fastboot, 'devices'])
-        print result
+        if result.find('?\tfastboot\r\n') >= 0:
+            print "The device is in fastboot mode"
+            self.ckbx_fastb_ready.SetValue(True)
+        else:
+            print "No device in fastboot"
+            self.ckbx_fastb_ready.SetValue(False)
+
 
     def on_wipe(self, event):
         '''wipe device'''
@@ -157,9 +175,14 @@ class MainWindow(wx.Frame):
         '''wipe device'''
         print_and_log([self.fastboot, '-w'])
 
+    def on_reboot(self, event):
+        '''reboot adb device'''
+        self._reboot()
+		
+		
     def _reboot(self):
         '''reboot device'''
-        print_and_log([self.adb, 'shell', 'reboot'])
+        print_and_log([self.adb, 'reboot'])
 
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
