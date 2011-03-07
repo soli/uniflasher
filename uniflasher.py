@@ -12,7 +12,7 @@ for the LG Eve GW620
 import wx
 import os
 import subprocess
-import time
+# import time
 
 class MainWindow(wx.Frame):
     '''Main window of the OpenEtna flasher
@@ -52,6 +52,7 @@ class MainWindow(wx.Frame):
 
         self.bootimg = ''
         self.systemimg = ''
+        self.gapps = ''
 
         wx.Frame.__init__(self, None, title='Hello ' + self.osname,
                           size=(500, 300))
@@ -171,7 +172,7 @@ class MainWindow(wx.Frame):
         self._flash('system', self.systemimg)
 
     def _wait_for_device(self):
-        time.sleep(10)
+        print_and_log([self.adb, 'wait-for-device'])
 
     def _nandroid(self):
         '''launch nandroid on device'''
@@ -182,9 +183,20 @@ class MainWindow(wx.Frame):
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
         self._recovery()
+        # FIXME is that enough or should we add time.sleep(10) afterwards?
         self._wait_for_device()
         self._nandroid()
         self._reboot()
+
+    def _gapps(self):
+        '''push gapps to device'''
+        if not self.gapps:
+            print "You need to select a zipped gapps file first"
+            return
+        print_and_log([self.adb, 'remount'])
+        print_and_log([self.abd, 'push', self.gapps, '/sdcard/'])
+        self._reboot()
+
 
 def do_and_log(args):
     '''print out a command, spawn a subprocess to execute it and print
