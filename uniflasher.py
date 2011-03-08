@@ -11,6 +11,7 @@ for the LG Eve GW620
 
 import wx
 import os
+import sys
 import subprocess
 import time
 import webbrowser
@@ -96,9 +97,7 @@ class MainWindow(wx.Frame):
         # Window contents
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         image = wx.Bitmap(os.path.join(imgpath, 'openetna_logo.png'))
-        self._logo = wx.StaticBitmap(self,
-                                     id=wx.ID_ANY,
-                                     bitmap=image)
+        self._logo = wx.StaticBitmap(self, id=wx.ID_ANY, bitmap=image)
         mainsizer.Add(self._logo)
 
         bottomsizer = wx.GridBagSizer(wx.VERTICAL)
@@ -204,7 +203,6 @@ class MainWindow(wx.Frame):
         dlg = wx.FileDialog(self, 'Choose a file', self.lastdir,
                             defaultFile=default, wildcard='*.img',
                             style=wx.OPEN)
-
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             self.lastdir = dlg.GetDirectory()
@@ -215,20 +213,20 @@ class MainWindow(wx.Frame):
         '''check if some device is connected and found by adb'''
         result = do_and_log([self.adb, 'devices'])
         if result.find('recovery') >= 0:
-            print "The device is in recovery mode"
+            print >> sys.stderr, "The device is in recovery mode"
             self.ckbx_adb_ready.SetValue(True)
         else:
-            print "No device in recovery mode"
+            print >> sys.stderr, "No device in recovery mode"
             self.ckbx_fastb_ready.SetValue(False)
 
     def on_fbdevices(self, event):
         '''check if some device is connected and found by fastboot'''
         result = do_and_log([self.fastboot, 'devices'])
         if result.find('?\tfastboot\r\n') >= 0:
-            print "The device is in fastboot mode"
+            print >> sys.stderr, "The device is in fastboot mode"
             self.ckbx_fastb_ready.SetValue(True)
         else:
-            print "No device in fastboot"
+            print >> sys.stderr, "No device in fastboot"
             self.ckbx_fastb_ready.SetValue(False)
 
     def on_wipe(self, event):
@@ -321,7 +319,7 @@ class MainWindow(wx.Frame):
     def _gapps(self):
         '''push gapps to device'''
         if not self.gapps:
-            print "You need to select a zipped gapps file first"
+            print >> sys.stderr, "You need to select a zipped gapps file first"
             return
         print_and_log([self.adb, 'remount'])
         print_and_log([self.abd, 'push', self.gapps, '/sdcard/'])
@@ -336,14 +334,30 @@ class MainWindow(wx.Frame):
 
     def _logcat(self):
         '''device logcat'''
-        print_and_log([self.adb, 'logcat'], timeout=100)
+        default=time.strftime('logcat_%Y%m%d%H%M%S.txt', time.localtime())
+        dlg = wx.FileDialog(self, 'Choose a file to save the log output',
+                            self.lastdir,
+                            defaultFile=default,
+                            wildcard='*.txt',
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.lastdir = dlg.GetDirectory()
+            logfile = os.path.join(self.lastdir, dlg.GetFilename())
+            log = do_and_log([self.adb, 'logcat'], timeout=100)
+            print >> sys.stderr, log
+            try:
+                logout = open(logfile, 'w')
+                print >> logout, log
+            finally:
+                logout.close()
+        dlg.Destroy()
 
 
 def do_and_log(args, timeout=10, poll=0.1):
     '''print out a command, spawn a subprocess to execute it
 
     kill the subprocess after a given timeout (active poll)'''
-    print ' '.join(args)
+    print >> sys.stderr, ' '.join(args)
     elapsed = 0.0
     try:
         pipe = subprocess.Popen(args, stdout=subprocess.PIPE)
@@ -354,18 +368,18 @@ def do_and_log(args, timeout=10, poll=0.1):
                 pipe.terminate()
         output =  pipe.communicate()[0]
         if pipe.returncode != 0:
-            print pipe.returncode
+            print >> sys.stderr, pipe.returncode
             return ''
         else:
             return output
     except OSError, error:
         # adb or fastboot not found
-        print error.strerror
+        print >> sys.stderr, error.strerror
         return ''
 
 def print_and_log(*args, **kwargs):
     '''call do_and_log and print the returned process output'''
-    print do_and_log(*args, **kwargs)
+    print >> sys.stderr, do_and_log(*args, **kwargs)
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
