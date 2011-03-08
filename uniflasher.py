@@ -165,13 +165,15 @@ class MainWindow(wx.Frame):
 
     def on_about(self, event):
         '''About us?'''
-        dlg = wx.MessageDialog(self,
-                               'A cross-platform, python-based, flasher'
-                               + ' for the OpenEtna ROMs on the LG Eve'
-                               + ' (GW 620)',
-                               'About OpenEtna uniFlasher', wx.OK)
-        dlg.ShowModal() # Show it
-        dlg.Destroy() # finally destroy it when finished.
+        self._ok_dialog('A cross-platform, python-based, flasher'
+                        + ' for the OpenEtna ROMs on the LG Eve'
+                        + ' (GW 620)',
+                        'About OpenEtna uniFlasher')
+
+    def _ok_dialog(self, message, title):
+        dlg = wx.MessageDialog(self, message, title, wx.OK)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def on_quit(self, event):
         '''Quit nicely'''
@@ -188,19 +190,20 @@ class MainWindow(wx.Frame):
 
     def on_boot(self, event):
         '''Select boot.img'''
-        self.bootimg = self._get_img_file() or self.bootimg
+        self.bootimg = self._get_img_file(self.bootimg) or self.bootimg
         self.bootctrl.SetValue(self.bootimg)
 
     def on_system(self, event):
-        '''Select boot.img'''
-        self.systemimg = self._get_img_file() or self.systemimg
+        '''Select system.img'''
+        self.systemimg = self._get_img_file(self.systemimg) or self.systemimg
         self.systemctrl.SetValue(self.systemimg)
 
-    def _get_img_file(self):
+    def _get_img_file(self, default):
         '''Select and return an img file'''
         filename = ''
         dlg = wx.FileDialog(self, 'Choose a file', self.lastdir,
-                            defaultFile='', wildcard='*.img', style=wx.OPEN)
+                            defaultFile=default, wildcard='*.img',
+                            style=wx.OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
@@ -246,10 +249,18 @@ class MainWindow(wx.Frame):
 
     def on_flashboot(self, event):
         '''flash boot'''
+        if not self.bootimg:
+            self._ok_dialog('You need to select a boot image first',
+                            'Missing boot.img')
+            self.on_boot(event)
         self._flash('boot',self.bootimg)
 
     def on_flashsystem(self, event):
         '''flash system'''
+        if not self.systemimg:
+            self._ok_dialog('You need to select a system image first',
+                            'Missing system.img')
+            self.on_system(event)
         self._flash('system',self.systemimg)
 
     def _flash(self, partition, imgfile):
@@ -268,12 +279,6 @@ class MainWindow(wx.Frame):
 
     def _flash_openetna(self):
         '''very basic OpenEtna flash, adapted from OpenEtnaflash.bat'''
-        if not self.bootimg:
-            print "You need to select a boot image first"
-            return
-        if not self.systemimg:
-            print "You need to select a system image first"
-            return
         self._wipe()
         self._flash('boot', self.bootimg)
         self._flash('system', self.systemimg)
