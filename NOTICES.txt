@@ -1,0 +1,24 @@
+imgs/everarecovery.img
+----------------------
+
+Amon RA recovery image (see https://github.com/packetlss and
+http://forum.xda-developers.com/showthread.php?t=530492)
+modified by ZacPod (http://www.zacpod.com/node/10386)
+available under Apache 2.0 license
+(http://www.apache.org/licenses/LICENSE-2.0.html)
+
+
+imgs/openetna_logo.png
+----------------------
+
+OpenEtna logo (http://code.google.com/p/openetna/issues/detail?id=68#c27)
+available under GPL v3 license (http://www.gnu.org/licenses/gpl.html)
+
+
+android-sdk-*/{adb,fastboot}*
+-----------------------------
+
+Part of Google Android SDK platform tools
+(http://developer.android.com/sdk/adding-components.html)
+available under Apache 2.0 license
+(http://www.apache.org/licenses/LICENSE-2.0.html)
