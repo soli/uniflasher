@@ -52,6 +52,7 @@ class MainWindow(wx.Frame):
             curpath = os.getcwd()
 
         sdkpath = os.path.join(curpath, sdkpath)
+        imgpath = os.path.join(curpath, 'imgs')
 
         self.adb = os.path.join(sdkpath, 'adb')
         self.fastboot = os.path.join(sdkpath, 'fastboot')
@@ -93,61 +94,70 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_forum, menuforum)
 
         # Window contents
-        mainsizer = wx.GridBagSizer(wx.VERTICAL)
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        image = wx.Bitmap(os.path.join(imgpath, 'openetna_logo.png'))
+        self._logo = wx.StaticBitmap(self,
+                                     id=wx.ID_ANY,
+                                     bitmap=image)
+        mainsizer.Add(self._logo)
+
+        bottomsizer = wx.GridBagSizer(wx.VERTICAL)
 
         self.bootbtn = wx.Button(self, label='boot image')
         self.Bind(wx.EVT_BUTTON, self.on_boot, self.bootbtn)
-        mainsizer.Add(self.bootbtn, pos=(0, 0))
+        bottomsizer.Add(self.bootbtn, pos=(0, 0))
         self.bootctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
-        mainsizer.Add(self.bootctrl, pos=(0, 1))
+        bottomsizer.Add(self.bootctrl, pos=(0, 1))
         self.flashbootbtn = wx.Button(self, label='flash boot')
         self.Bind(wx.EVT_BUTTON, self.on_flashboot, self.flashbootbtn)
-        mainsizer.Add(self.flashbootbtn, pos=(0, 2))
+        bottomsizer.Add(self.flashbootbtn, pos=(0, 2))
 
         self.systembtn = wx.Button(self, label='system image')
-        mainsizer.Add(self.systembtn, pos=(1, 0))
+        bottomsizer.Add(self.systembtn, pos=(1, 0))
         self.Bind(wx.EVT_BUTTON, self.on_system, self.systembtn)
         self.systemctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
-        mainsizer.Add(self.systemctrl, pos=(1, 1))
+        bottomsizer.Add(self.systemctrl, pos=(1, 1))
         self.flashsystembtn = wx.Button(self, label='flash system')
         self.Bind(wx.EVT_BUTTON, self.on_flashsystem, self.flashsystembtn)
-        mainsizer.Add(self.flashsystembtn, pos=(1, 2))
+        bottomsizer.Add(self.flashsystembtn, pos=(1, 2))
 
         self.devicesbtn = wx.Button(self, label='adb devices')
         self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
-        mainsizer.Add(self.devicesbtn, pos=(3, 0))
+        bottomsizer.Add(self.devicesbtn, pos=(3, 0))
         self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
-        mainsizer.Add(self.ckbx_adb_ready, pos=(3, 1))
+        bottomsizer.Add(self.ckbx_adb_ready, pos=(3, 1))
 
         self.wipebtn = wx.Button(self, label='wipe')
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
-        mainsizer.Add(self.wipebtn, pos=(2, 0))
+        bottomsizer.Add(self.wipebtn, pos=(2, 0))
 
         self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
         self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
-        mainsizer.Add(self.fbdevicesbtn, pos=(4, 0))
+        bottomsizer.Add(self.fbdevicesbtn, pos=(4, 0))
         self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
-        mainsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))
+        bottomsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))
 
         self.rebootbtn = wx.Button(self, label='reboot adb device')
         self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
-        mainsizer.Add(self.rebootbtn, pos=(5, 0))
+        bottomsizer.Add(self.rebootbtn, pos=(5, 0))
 
         self.recoverybtn = wx.Button(self, label='Launch Recovery')
         self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
-        mainsizer.Add(self.recoverybtn, pos=(6, 0))
+        bottomsizer.Add(self.recoverybtn, pos=(6, 0))
 
         self.backupbtn = wx.Button(self, label='Backup Phone')
         self.Bind(wx.EVT_BUTTON, self.on_backup, self.backupbtn)
-        mainsizer.Add(self.backupbtn, pos=(7, 0))
+        bottomsizer.Add(self.backupbtn, pos=(7, 0))
 
         self.retorebtn = wx.Button(self, label='Restore last backup')
         self.Bind(wx.EVT_BUTTON, self.on_restore, self.retorebtn)
-        mainsizer.Add(self.retorebtn, pos=(7, 1))
+        bottomsizer.Add(self.retorebtn, pos=(7, 1))
 
         self.logcatbtn = wx.Button(self, label='ADB Logcat')
         self.Bind(wx.EVT_BUTTON, self.on_logcat, self.logcatbtn)
-        mainsizer.Add(self.logcatbtn, pos=(8, 0))
+        bottomsizer.Add(self.logcatbtn, pos=(8, 0))
+
+        mainsizer.Add(bottomsizer)
 
         self.SetSizerAndFit(mainsizer)
 
@@ -155,7 +165,13 @@ class MainWindow(wx.Frame):
 
     def on_about(self, event):
         '''About us?'''
-        pass
+        dlg = wx.MessageDialog(self,
+                               'A cross-platform, python-based, flasher'
+                               + ' for the OpenEtna ROMs on the LG Eve'
+                               + ' (GW 620)',
+                               'About OpenEtna uniFlasher', wx.OK)
+        dlg.ShowModal() # Show it
+        dlg.Destroy() # finally destroy it when finished.
 
     def on_quit(self, event):
         '''Quit nicely'''
