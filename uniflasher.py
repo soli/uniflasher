@@ -72,6 +72,9 @@ class MainWindow(wx.Frame):
         helpmenu = wx.Menu()
         menuabout = helpmenu.Append(wx.ID_ABOUT, '&About',
                                    'Information about this program')
+        if os.name != 'Darwin':
+            helpmenu.AppendSeparator()
+
         menuoe = helpmenu.Append(wx.ID_ANY, '&OpenEtna website',
                                  'Open the OpenEtna website in a browser')
         menuforum = helpmenu.Append(wx.ID_ANY, '&Search forum',
