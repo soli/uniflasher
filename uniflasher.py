@@ -13,6 +13,7 @@ import wx
 import os
 import subprocess
 import time
+import webbrowser
 
 class MainWindow(wx.Frame):
     '''Main window of the OpenEtna flasher
@@ -66,19 +67,27 @@ class MainWindow(wx.Frame):
 
         # Setting up the menu.
         filemenu = wx.Menu()
-        menuabout = filemenu.Append(wx.ID_ABOUT, '&About',
-                                   'Information about this program')
         menuquit = filemenu.Append(wx.ID_EXIT, '&Quit',
                                    'Terminate the program')
+        helpmenu = wx.Menu()
+        menuabout = helpmenu.Append(wx.ID_ABOUT, '&About',
+                                   'Information about this program')
+        menuoe = helpmenu.Append(wx.ID_ANY, '&OpenEtna website',
+                                 'Open the OpenEtna website in a browser')
+        menuforum = helpmenu.Append(wx.ID_ANY, '&Search forum',
+                                    'Search the OpenEtna users\' forum')
 
         # Creating the menubar.
         menubar = wx.MenuBar()
         menubar.Append(filemenu, '&File')
+        menubar.Append(helpmenu, '&Help')
         self.SetMenuBar(menubar)
 
         # Events.
         self.Bind(wx.EVT_MENU, self.on_quit, menuquit)
         self.Bind(wx.EVT_MENU, self.on_about, menuabout)
+        self.Bind(wx.EVT_MENU, self.on_oe, menuoe)
+        self.Bind(wx.EVT_MENU, self.on_forum, menuforum)
 
         # Window contents
         mainsizer = wx.GridBagSizer(wx.VERTICAL)
@@ -110,7 +119,6 @@ class MainWindow(wx.Frame):
         self.wipebtn = wx.Button(self, label='wipe')
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
         mainsizer.Add(self.wipebtn, pos=(2, 0))
-
 
         self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
         self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
@@ -150,6 +158,14 @@ class MainWindow(wx.Frame):
         '''Quit nicely'''
         self._kill_server()
         self.Close(True)
+
+    def on_oe(self, event):
+        '''Open the OpenEtna web site in a browser'''
+        webbrowser.open('http://openetna.com/openetna/')
+
+    def on_forum(self, event):
+        '''Open the OpenEtna users\'s forum in a browser'''
+        webbrowser.open('http://forum.openetna.com/index.php?action=search')
 
     def on_boot(self, event):
         '''Select boot.img'''
