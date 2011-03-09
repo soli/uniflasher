@@ -219,6 +219,9 @@ class MainWindow(wx.Frame):
 
     def on_devices(self, event):
         '''check if some device is connected and found by adb'''
+        # If adb doesn't find the device on a mac ->
+        # http://www.zacpod.com/p/157
+        # /System/Library/Extensions/IOUSBFamily.kext/Contents/PlugIns/IOUSBCompositeDriver.kext/Contents/
         result = do_and_log([self.adb, 'devices'])
         if result.find('recovery') >= 0:
             print >> sys.stderr, "The device is in recovery mode"
@@ -307,7 +310,7 @@ class MainWindow(wx.Frame):
 
     def on_backup(self, event):
         '''start backup on SDCard'''
-        self._nandroid_backup()
+        self._simple_backup()
 
     def _nandroid_backup(self):
         '''launch nandroid backup on device (#duration : about 160s)
@@ -325,7 +328,9 @@ class MainWindow(wx.Frame):
     def _nandroid_restore(self):
         '''launch nandroid on device
 
-        adb shell sbin/nandroid-mobile.sh -r --defaultinput'''
+        adb shell nandroid-mobile.sh -r --defaultinput'''
+        self._recovery()
+        self._wait_for_device()
         print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-r',
                        '--defaultinput'], timeout=240)
 
