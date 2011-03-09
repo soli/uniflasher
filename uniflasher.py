@@ -110,7 +110,10 @@ class MainWindow(wx.Frame):
         self.flashbootbtn = wx.Button(self, label='flash boot')
         self.Bind(wx.EVT_BUTTON, self.on_flashboot, self.flashbootbtn)
         bottomsizer.Add(self.flashbootbtn, pos=(0, 2))
-
+        self.update_w_wipebtn = wx.Button(self, label='Complete update with wipe')
+        self.Bind(wx.EVT_BUTTON, self.on_update_w_wipe, self.update_w_wipebtn)
+        bottomsizer.Add(self.update_w_wipebtn, pos=(0, 3))
+		
         self.systembtn = wx.Button(self, label='system image')
         bottomsizer.Add(self.systembtn, pos=(1, 0))
         self.Bind(wx.EVT_BUTTON, self.on_system, self.systembtn)
@@ -119,7 +122,10 @@ class MainWindow(wx.Frame):
         self.flashsystembtn = wx.Button(self, label='flash system')
         self.Bind(wx.EVT_BUTTON, self.on_flashsystem, self.flashsystembtn)
         bottomsizer.Add(self.flashsystembtn, pos=(1, 2))
-
+        self.update_wo_wipebtn = wx.Button(self, label='Complete update without wipe')
+        self.Bind(wx.EVT_BUTTON, self.on_update_wo_wipe, self.update_wo_wipebtn)
+        bottomsizer.Add(self.update_wo_wipebtn, pos=(1, 3))
+        
         self.devicesbtn = wx.Button(self, label='adb devices')
         self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
         bottomsizer.Add(self.devicesbtn, pos=(3, 0))
@@ -275,9 +281,22 @@ class MainWindow(wx.Frame):
         print_and_log([self.fastboot, 'boot',
                     os.path.join('imgs', 'everarecovery.img')], timeout=60)
 
+    def on_update_w_wipe(self, event):
+        '''Update boot and system with wipe'''
+        self._flash_openetna()
+
     def _flash_openetna(self):
         '''very basic OpenEtna flash, adapted from OpenEtnaflash.bat'''
         self._wipe()
+        self._flash('boot', self.bootimg)
+        self._flash('system', self.systemimg)
+
+    def on_update_wo_wipe(self, event):
+        '''Update boot and system with wipe'''
+        self._flash_openetna_wo_wipe()
+
+    def _flash_openetna_wo_wipe(self):
+        '''very basic OpenEtna flash without wipe'''
         self._flash('boot', self.bootimg)
         self._flash('system', self.systemimg)
 
