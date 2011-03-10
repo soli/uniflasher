@@ -285,6 +285,7 @@ class MainWindow(wx.Frame):
         '''fastboot boot everarecovery.img'''
         print_and_log([self.fastboot, 'boot',
                     os.path.join('imgs', 'everarecovery.img')], timeout=60)
+        time.sleep(3)
 
     def on_update_w_wipe(self, event):
         '''Update boot and system with wipe'''
@@ -305,7 +306,9 @@ class MainWindow(wx.Frame):
         self._flash('system', self.systemimg)
 
     def _wait_for_device(self):
-        '''ask adb to wait for the device to be ready'''
+        '''ask adb to wait for the device to be ready
+
+        will not work for recovery, only "normal" device'''
         print_and_log([self.adb, 'wait-for-device'])
 
     def on_backup(self, event):
@@ -330,15 +333,12 @@ class MainWindow(wx.Frame):
 
         adb shell nandroid-mobile.sh -r --defaultinput'''
         self._recovery()
-        self._wait_for_device()
         print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-r',
                        '--defaultinput'], timeout=240)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
         self._recovery()
-        # FIXME seems to hang...
-        # self._wait_for_device()
         self._nandroid_backup()
         self._reboot()
 
@@ -394,13 +394,13 @@ def do_and_log(args, timeout=10, poll=0.1):
                 pipe.terminate()
         output =  pipe.communicate()[0]
         if pipe.returncode != 0:
-            print >> sys.stderr, pipe.returncode
+            print >> sys.stderr, 'Error #', pipe.returncode
             return ''
         else:
             return output
     except OSError, error:
         # adb or fastboot not found
-        print >> sys.stderr, error.strerror
+        print >> sys.stderr, 'Error :', error.strerror
         return ''
 
 def print_and_log(*args, **kwargs):
