@@ -177,8 +177,8 @@ class MainWindow(wx.Frame):
                         + ' (GW 620)',
                         'About OpenEtna uniFlasher')
 
-    def _ok_dialog(self, message, title):
-        dlg = wx.MessageDialog(self, message, title, wx.OK)
+    def _ok_dialog(self, message, title, style=wx.OK):
+        dlg = wx.MessageDialog(self, message, title, wx.OK | style)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -219,26 +219,38 @@ class MainWindow(wx.Frame):
 
     def on_devices(self, event):
         '''check if some device is connected and found by adb'''
+        self._devices()
+
+    def _devices(self):
+        '''check if some device is connected and found by adb'''
         # If adb doesn't find the device on a mac ->
         # http://www.zacpod.com/p/157
         # /System/Library/Extensions/IOUSBFamily.kext/Contents/PlugIns/IOUSBCompositeDriver.kext/Contents/
         result = do_and_log([self.adb, 'devices'])
         if result.find('recovery') >= 0:
             print >> sys.stderr, "The device is in recovery mode"
-            self.ckbx_adb_ready.SetValue(True)
+            found = True
         else:
             print >> sys.stderr, "No device in recovery mode"
-            self.ckbx_fastb_ready.SetValue(False)
+            found = False
+        self.ckbx_adb_ready.SetValue(found)
+        return found
 
     def on_fbdevices(self, event):
+        '''check if some device is connected and found by fastboot'''
+        self._fbdevices()
+
+    def _fbdevices(self):
         '''check if some device is connected and found by fastboot'''
         result = do_and_log([self.fastboot, 'devices'])
         if result.find('?\tfastboot\r\n') >= 0:
             print >> sys.stderr, "The device is in fastboot mode"
-            self.ckbx_fastb_ready.SetValue(True)
+            found = True
         else:
             print >> sys.stderr, "No device in fastboot"
-            self.ckbx_fastb_ready.SetValue(False)
+            found = False
+        self.ckbx_fastb_ready.SetValue(found)
+        return found
 
     def on_wipe(self, event):
         '''wipe device'''
@@ -246,7 +258,13 @@ class MainWindow(wx.Frame):
 
     def _wipe(self):
         '''wipe device'''
-        print_and_log([self.fastboot, '-w'])
+        if self._fbdevices():
+            return print_and_log([self.fastboot, '-w'])
+        else:
+            self._ok_dialog('You must put your phone in fastboot mode' +
+                            'first', 'No device in fastboot',
+                            wx.ICON_EXCLAMATION)
+            return False
 
     def on_reboot(self, event):
         '''reboot adb device'''
@@ -254,28 +272,39 @@ class MainWindow(wx.Frame):
 
     def _reboot(self):
         '''reboot device'''
-        print_and_log([self.adb, 'reboot'])
+        # TODO check if it works...
+        return print_and_log([self.adb, 'reboot'])
 
     def on_flashboot(self, event):
         '''flash boot'''
+        self._flash('boot', self.bootimg)
         if not self.bootimg:
-            self._ok_dialog('You need to select a boot image first',
-                            'Missing boot.img')
             self.on_boot(event)
-        self._flash('boot',self.bootimg)
+            self.bootimg and self._flash('boot', self.bootimg)
 
     def on_flashsystem(self, event):
         '''flash system'''
+        self._flash('system', self.systemimg)
         if not self.systemimg:
-            self._ok_dialog('You need to select a system image first',
-                            'Missing system.img')
             self.on_system(event)
-        self._flash('system',self.systemimg)
+            self.systemimg and self._flash('system', self.systemimg)
 
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
-        print_and_log([self.fastboot, 'flash', partition, imgfile],
-                      timeout=120)
+        if not imgfile:
+            self._ok_dialog('You need to select a ' + partition +
+                            ' image first',
+                            'Missing '+ partition +'.img',
+                            wx.ICON_EXCLAMATION)
+            return False
+        if self._fbdevices():
+            return print_and_log([self.fastboot, 'flash', partition, imgfile],
+                                 timeout=120)
+        else:
+            self._ok_dialog('You must put your phone in fastboot mode' +
+                            'first', 'No device in fastboot',
+                            wx.ICON_EXCLAMATION)
+            return False
 
     def on_recovery(self, event):
         '''Launch recovery on device'''
@@ -283,9 +312,17 @@ class MainWindow(wx.Frame):
 
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
-        print_and_log([self.fastboot, 'boot',
-                    os.path.join('imgs', 'everarecovery.img')], timeout=60)
-        time.sleep(3)
+        if self._fbdevices():
+            ok = print_and_log([self.fastboot, 'boot',
+                                os.path.join('imgs', 'everarecovery.img')],
+                               timeout=60)
+            time.sleep(3)
+            return ok
+        else:
+            self._ok_dialog('You must put your phone in fastboot mode' +
+                            'first', 'No device in fastboot',
+                            wx.ICON_EXCLAMATION)
+            return False
 
     def on_update_w_wipe(self, event):
         '''Update boot and system with wipe'''
@@ -293,8 +330,8 @@ class MainWindow(wx.Frame):
 
     def _flash_openetna(self):
         '''very basic OpenEtna flash, adapted from OpenEtnaflash.bat'''
-        self._wipe()
-        self._flash_openetna_wo_wipe()
+        return self._wipe() and \
+                self._flash_openetna_wo_wipe()
 
     def on_update_wo_wipe(self, event):
         '''Update boot and system with wipe'''
@@ -302,14 +339,14 @@ class MainWindow(wx.Frame):
 
     def _flash_openetna_wo_wipe(self):
         '''very basic OpenEtna flash without wipe'''
-        self._flash('boot', self.bootimg)
-        self._flash('system', self.systemimg)
+        return self._flash('boot', self.bootimg) and \
+                self._flash('system', self.systemimg)
 
     def _wait_for_device(self):
         '''ask adb to wait for the device to be ready
 
         will not work for recovery, only "normal" device'''
-        print_and_log([self.adb, 'wait-for-device'])
+        return print_and_log([self.adb, 'wait-for-device'])
 
     def on_backup(self, event):
         '''start backup on SDCard'''
@@ -320,9 +357,9 @@ class MainWindow(wx.Frame):
 
         adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1
             --nosplash2 --defaultinput'''
-        print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
-                       '--norecovery', '--nomisc', '--nosplash1',
-                       '--nosplash2', '--defaultinput'], timeout=170)
+        return print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
+                              '--norecovery', '--nomisc', '--nosplash1',
+                              '--nosplash2', '--defaultinput'], timeout=170)
 
     def on_restore(self, event):
         '''start restore from SDCard'''
@@ -332,27 +369,28 @@ class MainWindow(wx.Frame):
         '''launch nandroid on device
 
         adb shell nandroid-mobile.sh -r --defaultinput'''
-        self._recovery()
-        print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-r',
-                       '--defaultinput'], timeout=240)
+        return self._recovery() and \
+                print_and_log([self.adb, 'shell', 'nandroid-mobile.sh',
+                               '-r', '--defaultinput'], timeout=240)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
-        self._recovery()
-        self._nandroid_backup()
-        self._reboot()
+        return self._recovery() and \
+                self._nandroid_backup() and \
+                self._reboot()
 
     def _gapps(self):
         '''push gapps to device'''
         if not self.gapps:
             print >> sys.stderr, "You need to select a zipped gapps file first"
             return
-        print_and_log([self.adb, 'remount'])
-        print_and_log([self.abd, 'push', self.gapps, '/sdcard/'])
-        self._reboot()
+        return print_and_log([self.adb, 'remount']) and \
+                print_and_log([self.abd, 'push', self.gapps,
+                               '/sdcard/']) and \
+                self._reboot()
 
     def _kill_server(self):
-        print_and_log([self.adb, 'kill-server'])
+        return print_and_log([self.adb, 'kill-server'])
 
     def on_logcat(self, event):
         '''launch device logcat'''
@@ -360,6 +398,7 @@ class MainWindow(wx.Frame):
 
     def _logcat(self):
         '''device logcat'''
+        log = ''
         default=time.strftime('logcat_%Y%m%d%H%M%S.txt', time.localtime())
         dlg = wx.FileDialog(self, 'Choose a file to save the log output',
                             self.lastdir,
@@ -377,6 +416,7 @@ class MainWindow(wx.Frame):
             finally:
                 logout.close()
         dlg.Destroy()
+        return log
 
 
 def do_and_log(args, timeout=10, poll=0.1):
@@ -405,7 +445,12 @@ def do_and_log(args, timeout=10, poll=0.1):
 
 def print_and_log(*args, **kwargs):
     '''call do_and_log and print the returned process output'''
-    print >> sys.stderr, do_and_log(*args, **kwargs)
+    output =  do_and_log(*args, **kwargs)
+    if output:
+        print >> sys.stderr, output
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
