@@ -337,7 +337,8 @@ class MainWindow(wx.Frame):
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
         self._recovery()
-        self._wait_for_device()
+        # FIXME seems to hang...
+        # self._wait_for_device()
         self._nandroid_backup()
         self._reboot()
 
