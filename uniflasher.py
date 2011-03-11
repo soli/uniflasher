@@ -272,8 +272,8 @@ class MainWindow(wx.Frame):
 
     def _reboot(self):
         '''reboot device'''
-        # TODO check if it works...
-        return print_and_log([self.adb, 'reboot'])
+        return print_and_log([self.adb, 'shell', 'reboot']) or \
+                print_and_log([self.adb, 'reboot'])
 
     def on_flashboot(self, event):
         '''flash boot'''
@@ -321,7 +321,6 @@ class MainWindow(wx.Frame):
             elapsed = 0
             while elapsed < 10:
                 ok = do_and_log([self.adb, 'devices']).find('recovery') >= 0
-                print 'polled', ok
                 if ok:
                     break
                 time.sleep(1)
@@ -369,7 +368,7 @@ class MainWindow(wx.Frame):
         return print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                               '--norecovery', '--nomisc', '--nosplash1',
                               '--nosplash2', '--defaultinput',
-                              '--autoreboot'], timeout=240)
+                              '--autoreboot'], progress=True)
 
     def on_restore(self, event):
         '''start restore from SDCard'''
@@ -381,7 +380,7 @@ class MainWindow(wx.Frame):
         adb shell nandroid-mobile.sh -r --defaultinput'''
         return self._recovery() and \
                 print_and_log([self.adb, 'shell', 'nandroid-mobile.sh',
-                               '-r', '--defaultinput'], timeout=240)
+                               '-r', '--defaultinput'], progress=True)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
@@ -428,7 +427,8 @@ class MainWindow(wx.Frame):
         return log
 
 
-def do_and_log(args, timeout=10, poll=0.1):
+def do_and_log(args, timeout=10, poll=0.1, printout=False,
+               progress=False):
     '''print out a command, spawn a subprocess to execute it
 
     kill the subprocess after a given timeout (active poll)'''
@@ -437,17 +437,32 @@ def do_and_log(args, timeout=10, poll=0.1):
     try:
         pipe = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
-        while pipe.poll() is None:
-            time.sleep(poll)
-            elapsed += poll
-            if elapsed > timeout:
-                pipe.terminate()
-        output =  pipe.communicate()[0]
-        if pipe.returncode != 0:
+        if progress:
+            output = ''
+            while True:
+                line = pipe.stdout.readline()
+                if not line:
+                    break
+                if printout:
+                    print >> sys.stderr, line,
+                output += line
+        else:
+            while pipe.poll() is None:
+                time.sleep(poll)
+                elapsed += poll
+                if elapsed > timeout:
+                    pipe.terminate()
+            output = pipe.communicate()[0]
+            if printout:
+                print >> sys.stderr, output
+        returncode = pipe.returncode
+        if returncode and returncode > 0:
             print >> sys.stderr, 'Error #', pipe.returncode
             return ''
-        else:
-            return output
+        if returncode and returncode < 0:
+            print >> sys.stderr, 'Interrupted by signal #', pipe.returncode
+            return ''
+        return output
     except OSError, error:
         # adb or fastboot not found
         print >> sys.stderr, 'Error :', error.strerror
@@ -455,9 +470,7 @@ def do_and_log(args, timeout=10, poll=0.1):
 
 def print_and_log(*args, **kwargs):
     '''call do_and_log and print the returned process output'''
-    output =  do_and_log(*args, **kwargs)
-    print >> sys.stderr, output
-    return output
+    return do_and_log(*args, printout=True, **kwargs)
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
