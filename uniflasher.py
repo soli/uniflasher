@@ -315,16 +315,25 @@ class MainWindow(wx.Frame):
         if self._fbdevices():
             ok = print_and_log([self.fastboot, 'boot',
                                 os.path.join('imgs', 'everarecovery.img')],
-                               timeout=60)
+                               progress=2)
             # since wait-for-device won't work in recovery
             # actively poll device status
             elapsed = 0
+            dialog = wx.ProgressDialog('Waiting for device',
+                                       'Device is not in recovery ' +
+                                       'mode yet...',
+                                       style = wx.PD_APP_MODAL |
+                                       wx.PD_SMOOTH |
+                                       wx.PD_AUTO_HIDE )
+            dialog.Pulse('')
             while elapsed < 10:
                 ok = do_and_log([self.adb, 'devices']).find('recovery') >= 0
                 if ok:
                     break
                 time.sleep(1)
                 elapsed += 1
+                dialog.UpdatePulse()
+            dialog.Destroy()
             return ok
         else:
             self._ok_dialog('You must put your phone in fastboot mode' +
@@ -364,11 +373,11 @@ class MainWindow(wx.Frame):
         '''launch nandroid backup on device (#duration : about 160s)
 
         adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1
-            --nosplash2 --defaultinput'''
+            --nosplash2 --defaultinput --autoreboot'''
         return print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                               '--norecovery', '--nomisc', '--nosplash1',
                               '--nosplash2', '--defaultinput',
-                              '--autoreboot'], progress=True)
+                              '--autoreboot'], progress=22)
 
     def on_restore(self, event):
         '''start restore from SDCard'''
@@ -378,9 +387,10 @@ class MainWindow(wx.Frame):
         '''launch nandroid on device
 
         adb shell nandroid-mobile.sh -r --defaultinput'''
+        # FIXME number of lines -> progress
         return self._recovery() and \
                 print_and_log([self.adb, 'shell', 'nandroid-mobile.sh',
-                               '-r', '--defaultinput'], progress=True)
+                               '-r', '--defaultinput'], progress=1)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
@@ -406,6 +416,11 @@ class MainWindow(wx.Frame):
 
     def _logcat(self):
         '''device logcat'''
+        if print_and_log([self.adb, 'devices']).find('  device') < 0:
+            self._ok_dialog('Your device was not found by adb',
+                            'No device found',
+                            wx.ICON_EXCLAMATION)
+            return ''
         log = ''
         default=time.strftime('logcat_%Y%m%d%H%M%S.txt', time.localtime())
         dlg = wx.FileDialog(self, 'Choose a file to save the log output',
@@ -428,23 +443,41 @@ class MainWindow(wx.Frame):
 
 
 def do_and_log(args, timeout=10, poll=0.1, printout=False,
-               progress=False):
-    '''print out a command, spawn a subprocess to execute it
+               progress=0):
+    '''spawn a subprocess to execute a command
 
-    kill the subprocess after a given timeout (active poll)'''
-    print >> sys.stderr, ' '.join(args)
+    kill the subprocess after a given timeout (active poll),
+    optionally print out the result
+    unbuffered process output can be displayed (cancels timeout, forces
+    printout)'''
+    cmd = ' '.join(args)
+    print >> sys.stderr, cmd
     elapsed = 0.0
     try:
-        pipe = subprocess.Popen(args, stdout=subprocess.PIPE,
+        pipe = subprocess.Popen(args,
+                                universal_newlines=True,
+                                stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         if progress:
+            dialog = wx.ProgressDialog(os.path.split(cmd)[1],
+                                       cmd[:90],
+                                       maximum = progress,
+                                       style = wx.PD_APP_MODAL |
+                                       # wx.PD_REMAINING_TIME |
+                                       wx.PD_CAN_ABORT |
+                                       wx.PD_AUTO_HIDE )
             output = ''
+            count = 0
             while True:
                 line = pipe.stdout.readline()
                 if not line:
                     break
-                if printout:
-                    print >> sys.stderr, line,
+                count += 1
+                if not dialog.Update(count, line[:-1])[0]:
+                    pipe.terminate()
+                    dialog.Destroy()
+                    output = ''
+                    break
                 output += line
         else:
             while pipe.poll() is None:
