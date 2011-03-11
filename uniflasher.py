@@ -243,7 +243,7 @@ class MainWindow(wx.Frame):
     def _fbdevices(self):
         '''check if some device is connected and found by fastboot'''
         result = do_and_log([self.fastboot, 'devices'])
-        if result.find('?\tfastboot\r\n') >= 0:
+        if result.find('?\tfastboot') >= 0:
             print >> sys.stderr, "The device is in fastboot mode"
             found = True
         else:
@@ -316,7 +316,16 @@ class MainWindow(wx.Frame):
             ok = print_and_log([self.fastboot, 'boot',
                                 os.path.join('imgs', 'everarecovery.img')],
                                timeout=60)
-            time.sleep(3)
+            # since wait-for-device won't work in recovery
+            # actively poll device status
+            elapsed = 0
+            while elapsed < 10:
+                ok = do_and_log([self.adb, 'devices']).find('recovery') >= 0
+                print 'polled', ok
+                if ok:
+                    break
+                time.sleep(1)
+                elapsed += 1
             return ok
         else:
             self._ok_dialog('You must put your phone in fastboot mode' +
@@ -359,7 +368,8 @@ class MainWindow(wx.Frame):
             --nosplash2 --defaultinput'''
         return print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                               '--norecovery', '--nomisc', '--nosplash1',
-                              '--nosplash2', '--defaultinput'], timeout=170)
+                              '--nosplash2', '--defaultinput',
+                              '--autoreboot'], timeout=240)
 
     def on_restore(self, event):
         '''start restore from SDCard'''
@@ -376,8 +386,7 @@ class MainWindow(wx.Frame):
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
         return self._recovery() and \
-                self._nandroid_backup() and \
-                self._reboot()
+                self._nandroid_backup()
 
     def _gapps(self):
         '''push gapps to device'''
@@ -426,7 +435,8 @@ def do_and_log(args, timeout=10, poll=0.1):
     print >> sys.stderr, ' '.join(args)
     elapsed = 0.0
     try:
-        pipe = subprocess.Popen(args, stdout=subprocess.PIPE)
+        pipe = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
         while pipe.poll() is None:
             time.sleep(poll)
             elapsed += poll
@@ -446,11 +456,8 @@ def do_and_log(args, timeout=10, poll=0.1):
 def print_and_log(*args, **kwargs):
     '''call do_and_log and print the returned process output'''
     output =  do_and_log(*args, **kwargs)
-    if output:
-        print >> sys.stderr, output
-        return True
-    else:
-        return False
+    print >> sys.stderr, output
+    return output
 
 if __name__ == '__main__':
     # Create the app, don't redirect stdout/stderr.
