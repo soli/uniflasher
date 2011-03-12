@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Copyright admin@guimmer.co.cc, m.pluvinage@gmail.com,
-# Tetsuo6995@gmail.com, Sylvain.Soliman@m4x.org
+#
+# Copyright Sylvain.Soliman@m4x.org, m.pluvinage@gmail.com,
+# Tetsuo6995@gmail.com, admin@guimmer.co.cc
 # License GPL v2.0
 
 '''
@@ -82,6 +83,15 @@ class MainWindow(wx.Frame):
         menuforum = helpmenu.Append(wx.ID_ANY, '&Search forum',
                                     'Search the OpenEtna users\' forum')
 
+        menugetoe = filemenu.Append(wx.ID_ANY,
+                                    'Get &OpenEtna image files',
+                                    'Open the OpenEtna download page' +
+                                    ' in a browser')
+        menugetga = filemenu.Append(wx.ID_ANY,
+                                    'Get &Google Apps',
+                                    'Open the OpenEtna download page' +
+                                    ' in a browser')
+
         # Creating the menubar.
         menubar = wx.MenuBar()
         menubar.Append(filemenu, '&File')
@@ -93,6 +103,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_about, menuabout)
         self.Bind(wx.EVT_MENU, self.on_oe, menuoe)
         self.Bind(wx.EVT_MENU, self.on_forum, menuforum)
+        self.Bind(wx.EVT_MENU, self.on_getoe, menugetoe)
+        self.Bind(wx.EVT_MENU, self.on_getga, menugetga)
 
         # Window contents
         mainsizer = wx.BoxSizer(wx.VERTICAL)
@@ -128,43 +140,54 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_update_wo_wipe, self.update_wo_wipebtn)
         bottomsizer.Add(self.update_wo_wipebtn, pos=(1, 3))
 
-        self.devicesbtn = wx.Button(self, label='adb devices')
-        self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
-        bottomsizer.Add(self.devicesbtn, pos=(3, 0))
-        self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
-        bottomsizer.Add(self.ckbx_adb_ready, pos=(3, 1))
-
         self.wipebtn = wx.Button(self, label='wipe')
         self.Bind(wx.EVT_BUTTON, self.on_wipe, self.wipebtn)
         bottomsizer.Add(self.wipebtn, pos=(2, 0))
 
-        self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
-        self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
-        bottomsizer.Add(self.fbdevicesbtn, pos=(4, 0))
-        self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
-        bottomsizer.Add(self.ckbx_fastb_ready, pos=(4, 1))
-
-        self.rebootbtn = wx.Button(self, label='reboot adb device')
-        self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
-        bottomsizer.Add(self.rebootbtn, pos=(5, 0))
-
-        self.recoverybtn = wx.Button(self, label='Launch Recovery')
-        self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
-        bottomsizer.Add(self.recoverybtn, pos=(6, 0))
-
         self.backupbtn = wx.Button(self, label='Backup Phone')
         self.Bind(wx.EVT_BUTTON, self.on_backup, self.backupbtn)
-        bottomsizer.Add(self.backupbtn, pos=(7, 0))
+        bottomsizer.Add(self.backupbtn, pos=(3, 0))
 
         self.retorebtn = wx.Button(self, label='Restore last backup')
         self.Bind(wx.EVT_BUTTON, self.on_restore, self.retorebtn)
-        bottomsizer.Add(self.retorebtn, pos=(7, 1))
+        bottomsizer.Add(self.retorebtn, pos=(3, 1))
 
         self.logcatbtn = wx.Button(self, label='ADB Logcat')
         self.Bind(wx.EVT_BUTTON, self.on_logcat, self.logcatbtn)
-        bottomsizer.Add(self.logcatbtn, pos=(8, 0))
+        bottomsizer.Add(self.logcatbtn, pos=(4, 0))
+
+        self.gappsbtn = wx.Button(self, label='gapps file')
+        self.Bind(wx.EVT_BUTTON, self.on_gapps, self.gappsbtn)
+        bottomsizer.Add(self.gappsbtn, pos=(5, 0))
+        self.gappsctrl = wx.TextCtrl(self, style=wx.TE_READONLY)
+        bottomsizer.Add(self.gappsctrl, pos=(5, 1))
+        self.installgappsbtn = wx.Button(self, label='install gapps')
+        self.Bind(wx.EVT_BUTTON, self.on_installgapps, self.installgappsbtn)
+        bottomsizer.Add(self.installgappsbtn, pos=(5, 2))
+
+        # self.rebootbtn = wx.Button(self, label='reboot adb device')
+        # self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
+        # bottomsizer.Add(self.rebootbtn, pos=(5, 0))
+
+        # self.recoverybtn = wx.Button(self, label='Launch Recovery')
+        # self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
+        # bottomsizer.Add(self.recoverybtn, pos=(6, 0))
+
+        # self.devicesbtn = wx.Button(self, label='adb devices')
+        # self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
+        # bottomsizer.Add(self.devicesbtn, pos=(7, 0))
+        # self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
+        # bottomsizer.Add(self.ckbx_adb_ready, pos=(7, 1))
+
+        # self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
+        # self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
+        # bottomsizer.Add(self.fbdevicesbtn, pos=(8, 0))
+        # self.ckbx_fastb_ready = wx.CheckBox(self, label='fastboot ready')
+        # bottomsizer.Add(self.ckbx_fastb_ready, pos=(8, 1))
 
         mainsizer.Add(bottomsizer, flag=wx.ALIGN_CENTER)
+
+        mainsizer.AddSpacer(10)
 
         self.SetSizerAndFit(mainsizer)
 
@@ -195,6 +218,14 @@ class MainWindow(wx.Frame):
         '''Open the OpenEtna users\'s forum in a browser'''
         webbrowser.open('http://forum.openetna.com/index.php?action=search')
 
+    def on_getoe(self, event):
+        '''Open the OpenEtna download page in a browser'''
+        webbrowser.open('http://code.google.com/p/openetna/downloads/list')
+
+    def on_getga(self, event):
+        '''Get latest mdpi gapps file through browser'''
+        webbrowser.open('http://goo-inside.me/gapps/latest/6/tiny/')
+
     def on_boot(self, event):
         '''Select boot.img'''
         self.bootimg = self._get_img_file(self.bootimg) or self.bootimg
@@ -209,7 +240,8 @@ class MainWindow(wx.Frame):
         '''Select and return an img file'''
         filename = ''
         dlg = wx.FileDialog(self, 'Choose a file', self.lastdir,
-                            defaultFile=default, wildcard='*.img',
+                            defaultFile=os.path.split(default)[1],
+                            wildcard='*.img',
                             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
@@ -233,7 +265,7 @@ class MainWindow(wx.Frame):
         else:
             print >> sys.stderr, "No device in recovery mode"
             found = False
-        self.ckbx_adb_ready.SetValue(found)
+        # self.ckbx_adb_ready.SetValue(found)
         return found
 
     def on_fbdevices(self, event):
@@ -249,7 +281,7 @@ class MainWindow(wx.Frame):
         else:
             print >> sys.stderr, "No device in fastboot"
             found = False
-        self.ckbx_fastb_ready.SetValue(found)
+        # self.ckbx_fastb_ready.SetValue(found)
         return found
 
     def on_wipe(self, event):
@@ -259,7 +291,7 @@ class MainWindow(wx.Frame):
     def _wipe(self):
         '''wipe device'''
         if self._fbdevices():
-            return print_and_log([self.fastboot, '-w'])
+            return print_and_log([self.fastboot, '-w'], progress=2)
         else:
             self._ok_dialog('You must put your phone in fastboot mode' +
                             'first', 'No device in fastboot',
@@ -299,7 +331,7 @@ class MainWindow(wx.Frame):
             return False
         if self._fbdevices():
             return print_and_log([self.fastboot, 'flash', partition, imgfile],
-                                 timeout=120)
+                                 progress=2)
         else:
             self._ok_dialog('You must put your phone in fastboot mode' +
                             'first', 'No device in fastboot',
@@ -356,8 +388,16 @@ class MainWindow(wx.Frame):
 
     def _flash_openetna_wo_wipe(self):
         '''very basic OpenEtna flash without wipe'''
-        return self._flash('boot', self.bootimg) and \
-                self._flash('system', self.systemimg)
+        self.on_flashboot(None)
+        if not self.bootimg:
+            return False
+        self.on_flashsystem(None)
+        if not self.systemimg:
+            return False
+        self._ok_dialog('You can now manually sitch off your phone ' +
+                        'and restart it. This can take a long time ' +
+                        '(up to 10 minutes).', 'Reboot')
+        return True
 
     def _wait_for_device(self):
         '''ask adb to wait for the device to be ready
@@ -397,14 +437,32 @@ class MainWindow(wx.Frame):
         return self._recovery() and \
                 self._nandroid_backup()
 
-    def _gapps(self):
+    def on_gapps(self, event):
+        '''Select the gapps file'''
+        dlg = wx.FileDialog(self, 'Choose a file', self.lastdir,
+                            defaultFile=os.path.split(self.gapps)[1],
+                            wildcard='*.zip',
+                            style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.lastdir = dlg.GetDirectory()
+            self.gapps = os.path.join(self.lastdir, dlg.GetFilename())
+            self.gappsctrl.SetValue(self.gapps)
+        dlg.Destroy()
+
+    def on_installgapps(self, event):
+        self._install_gapps()
+        if not self.gapps:
+            self.on_gapps(event)
+            self.gapps and self._install_gapps()
+
+    def _install_gapps(self):
         '''push gapps to device'''
         if not self.gapps:
             print >> sys.stderr, "You need to select a zipped gapps file first"
             return
         return print_and_log([self.adb, 'remount']) and \
-                print_and_log([self.abd, 'push', self.gapps,
-                               '/sdcard/']) and \
+                print_and_log([self.adb, 'push', self.gapps,
+                               '/sdcard/'], timeout=60) and \
                 self._reboot()
 
     def _kill_server(self):
