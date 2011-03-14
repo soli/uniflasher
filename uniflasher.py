@@ -169,15 +169,15 @@ class MainWindow(wx.Frame):
         # self.Bind(wx.EVT_BUTTON, self.on_reboot, self.rebootbtn)
         # bottomsizer.Add(self.rebootbtn, pos=(5, 0))
 
-        # self.recoverybtn = wx.Button(self, label='Launch Recovery')
-        # self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
-        # bottomsizer.Add(self.recoverybtn, pos=(6, 0))
+        self.recoverybtn = wx.Button(self, label='Launch Recovery')
+        self.Bind(wx.EVT_BUTTON, self.on_recovery, self.recoverybtn)
+        bottomsizer.Add(self.recoverybtn, pos=(6, 0))
 
-        # self.devicesbtn = wx.Button(self, label='adb devices')
-        # self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
-        # bottomsizer.Add(self.devicesbtn, pos=(7, 0))
-        # self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
-        # bottomsizer.Add(self.ckbx_adb_ready, pos=(7, 1))
+        self.devicesbtn = wx.Button(self, label='adb devices')
+        self.Bind(wx.EVT_BUTTON, self.on_devices, self.devicesbtn)
+        bottomsizer.Add(self.devicesbtn, pos=(7, 0))
+        self.ckbx_adb_ready = wx.CheckBox(self, label='recovery adb ready')
+        bottomsizer.Add(self.ckbx_adb_ready, pos=(7, 1))
 
         # self.fbdevicesbtn = wx.Button(self, label='fastboot devices')
         # self.Bind(wx.EVT_BUTTON, self.on_fbdevices, self.fbdevicesbtn)
@@ -293,8 +293,8 @@ class MainWindow(wx.Frame):
         if self._fbdevices():
             return print_and_log([self.fastboot, '-w'], progress=2)
         else:
-            self._ok_dialog('You must put your phone in fastboot mode' +
-                            'first', 'No device in fastboot',
+            self._ok_dialog('You must connect your phone in fastboot mode' +
+                            ' first', 'No device in fastboot',
                             wx.ICON_EXCLAMATION)
             return False
 
@@ -529,9 +529,14 @@ def do_and_log(args, timeout=10, poll=0.1, printout=False,
             while True:
                 line = pipe.stdout.readline()
                 if not line:
+                    if count != progress:
+                        print >> sys.stderr, 'Warning: read', count, 'lines'
+                        print >> sys.stderr, '         expected ',
+                        print >> sys.stderr, progress, 'lines'
                     break
                 count += 1
-                if not dialog.Update(count, line[:-1])[0]:
+                if count <= progress and \
+                   not dialog.Update(count, line[:-1])[0]:
                     pipe.terminate()
                     dialog.Destroy()
                     output = ''
