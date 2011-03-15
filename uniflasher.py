@@ -334,7 +334,7 @@ class MainWindow(wx.Frame):
                                  progress=2)
         else:
             self._ok_dialog('You must put your phone in fastboot mode' +
-                            'first', 'No device in fastboot',
+                            ' first', 'No device in fastboot',
                             wx.ICON_EXCLAMATION)
             return False
 
