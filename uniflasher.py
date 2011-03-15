@@ -290,8 +290,12 @@ class MainWindow(wx.Frame):
 
     def _wipe(self):
         '''wipe device'''
+        if self.osname == 'Windows':
+            expectedlines = 3
+        else:
+            expectedlines = 2
         if self._fbdevices():
-            return print_and_log([self.fastboot, '-w'], progress=2)
+            return print_and_log([self.fastboot, '-w'], progress=expectedlines)
         else:
             self._ok_dialog('You must connect your phone in fastboot mode' +
                             ' first', 'No device in fastboot',
@@ -323,6 +327,10 @@ class MainWindow(wx.Frame):
 
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
+        if self.osname == 'Windows':
+            expectedlines = 3
+        else:
+            expectedlines = 2
         if not imgfile:
             self._ok_dialog('You need to select a ' + partition +
                             ' image first',
@@ -331,7 +339,7 @@ class MainWindow(wx.Frame):
             return False
         if self._fbdevices():
             return print_and_log([self.fastboot, 'flash', partition, imgfile],
-                                 progress=2)
+                                 progress=expectedlines)
         else:
             self._ok_dialog('You must put your phone in fastboot mode' +
                             ' first', 'No device in fastboot',
@@ -344,10 +352,14 @@ class MainWindow(wx.Frame):
 
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
+        if self.osname == 'Windows':
+            expectedlines = 3
+        else:
+            expectedlines = 2
         if self._fbdevices():
             ok = print_and_log([self.fastboot, 'boot',
                                 os.path.join('imgs', 'everarecovery.img')],
-                               progress=2)
+                               progress=expectedlines)
             # since wait-for-device won't work in recovery
             # actively poll device status
             elapsed = 0
@@ -394,7 +406,7 @@ class MainWindow(wx.Frame):
         self.on_flashsystem(None)
         if not self.systemimg:
             return False
-        self._ok_dialog('You can now manually sitch off your phone ' +
+        self._ok_dialog('You can now manually switch off your phone ' +
                         'and restart it. This can take a long time ' +
                         '(up to 10 minutes).', 'Reboot')
         return True
@@ -414,10 +426,14 @@ class MainWindow(wx.Frame):
 
         adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1
             --nosplash2 --defaultinput --autoreboot'''
+        if self.osname == 'Windows':
+            expectedlines = 44
+        else:
+            expectedlines = 22
         return print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                               '--norecovery', '--nomisc', '--nosplash1',
                               '--nosplash2', '--defaultinput',
-                              '--autoreboot'], progress=22)
+                              '--autoreboot'], progress=expectedlines)
 
     def on_restore(self, event):
         '''start restore from SDCard'''
@@ -428,9 +444,13 @@ class MainWindow(wx.Frame):
 
         adb shell nandroid-mobile.sh -r --defaultinput'''
         # FIXME number of lines -> progress
+        if self.osname == 'Windows':
+            expectedlines = 88
+        else:
+            expectedlines = 1
         return self._recovery() and \
                 print_and_log([self.adb, 'shell', 'nandroid-mobile.sh',
-                               '-r', '--defaultinput'], progress=1)
+                               '-r', '--defaultinput'], progress=expectedlines) and print_and_log([self.adb, 'shell', 'reboot'], progress=0)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
