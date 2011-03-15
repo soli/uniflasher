@@ -290,7 +290,7 @@ class MainWindow(wx.Frame):
 
     def _wipe(self):
         '''wipe device'''
-        if self.osname == 'Windows':
+        if self.osname == 'XWindows':
             expectedlines = 3
         else:
             expectedlines = 2
@@ -327,7 +327,7 @@ class MainWindow(wx.Frame):
 
     def _flash(self, partition, imgfile):
         '''flash some image to the given partition on device'''
-        if self.osname == 'Windows':
+        if self.osname == 'XWindows':
             expectedlines = 3
         else:
             expectedlines = 2
@@ -352,7 +352,7 @@ class MainWindow(wx.Frame):
 
     def _recovery(self):
         '''fastboot boot everarecovery.img'''
-        if self.osname == 'Windows':
+        if self.osname == 'XWindows':
             expectedlines = 3
         else:
             expectedlines = 2
@@ -426,10 +426,10 @@ class MainWindow(wx.Frame):
 
         adb shell nandroid-mobile.sh -b --norecovery --nomisc --nosplash1
             --nosplash2 --defaultinput --autoreboot'''
-        if self.osname == 'Windows':
+        if self.osname == 'XWindows':
             expectedlines = 44
         else:
-            expectedlines = 22
+            expectedlines = 18
         return print_and_log([self.adb, 'shell', 'nandroid-mobile.sh', '-b',
                               '--norecovery', '--nomisc', '--nosplash1',
                               '--nosplash2', '--defaultinput',
@@ -443,14 +443,15 @@ class MainWindow(wx.Frame):
         '''launch nandroid on device
 
         adb shell nandroid-mobile.sh -r --defaultinput'''
-        # FIXME number of lines -> progress
-        if self.osname == 'Windows':
+        if self.osname == 'XWindows':
             expectedlines = 88
         else:
-            expectedlines = 1
+            expectedlines = 25
         return self._recovery() and \
                 print_and_log([self.adb, 'shell', 'nandroid-mobile.sh',
-                               '-r', '--defaultinput'], progress=expectedlines) and print_and_log([self.adb, 'shell', 'reboot'], progress=0)
+                               '-r', '--defaultinput'],
+                              progress=expectedlines) and \
+                print_and_log([self.adb, 'shell', 'reboot'], progress=0)
 
     def _simple_backup(self):
         '''very basic backup, adapted from simplebackup.bat'''
@@ -554,7 +555,11 @@ def do_and_log(args, timeout=10, poll=0.1, printout=False,
                         print >> sys.stderr, '         expected ',
                         print >> sys.stderr, progress, 'lines'
                     break
-                count += 1
+                # ignore empty lines, adb launch, available backup list
+                # and end message of some fastboot versions
+                if len(line) > 1 and \
+                   not line.startswith(('*', '/', 'finished.')):
+                    count += 1
                 if count <= progress and \
                    not dialog.Update(count, line[:-1])[0]:
                     pipe.terminate()
