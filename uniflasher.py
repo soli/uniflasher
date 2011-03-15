@@ -368,8 +368,8 @@ class MainWindow(wx.Frame):
             dialog.Destroy()
             return ok
         else:
-            self._ok_dialog('You must put your phone in fastboot mode' +
-                            'first', 'No device in fastboot',
+            self._ok_dialog('You must connect your phone in fastboot mode' +
+                            ' first', 'No device in fastboot',
                             wx.ICON_EXCLAMATION)
             return False
 
