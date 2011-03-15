@@ -1,0 +1,146 @@
+================================================================================
+recovery :
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>fastboot boot ..\imgs\ev
+erarecovery.img
+        downloading 'boot.img'... OKAY [  0.750s]
+                       booting... FAILED (status read failed (Too many links))
+finished. total time: 4.938s
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+
+
+================================================================================
+backup :
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>adb shell nandroid-mobil
+e.sh -b --norecovery --nomisc --nosplash1 --nosplash2 --defaultinput --autoreboo
+t
+* daemon not running. starting it now on port 5037 *
+* daemon started successfully *
+
+nandroid-mobile v2.2.1
+
+Using G1 keyboard, enter a prefix substring and then <CR>
+or just <CR> to accept default: Accepting default.
+
+Using - prefix to create a backup folder
+
+mounting system and data read-only, sdcard read-write
+checking free space on sdcard
+Dump of the splash1 image suppressed.
+Dump of the splash2 image suppressed.
+Dumping boot to /sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1918/boot.im
+g...done
+Dump of the recovery partition suppressed.
+Dump of the misc partition suppressed.
+Dumping system to /sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1918/syste
+m.img...done
+Dumping lgdrm to /sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1918/lgdrm.
+img...done
+Dumping data to /sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1918/data.im
+g...done
+Dumping cache to /sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1918/cache.
+img...done
+generating md5sum file...done
+unmounting system, data and sdcard
+Backup successful.
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+================================================================================
+wipe :
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>fastboot -w
+            erasing 'userdata'... OKAY [  2.203s]
+               erasing 'cache'... OKAY [  0.781s]
+finished. total time: 2.984s
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+================================================================================
+flash boot :
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>fastboot flash boot D:\M
+amat\android\rom\rom_backup_10E\boot.img
+      sending 'boot' (7040 KB)... OKAY [  1.016s]
+                writing 'boot'... OKAY [  1.344s]
+finished. total time: 2.359s
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+================================================================================
+flash img :
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>fastboot flash system d:
+\Mamat\android\rom\rom_backup_10E\system.img
+  sending 'system' (183906 KB)... OKAY [ 27.922s]
+              writing 'system'... OKAY [ 35.563s]
+finished. total time: 63.484s
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+================================================================================
+restore:
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>adb shell nandroid-mobil
+e.sh -r --defaultinput
+
+nandroid-mobile v2.2.1
+
+Using G1 keyboard, enter a directory name substring and then <CR>
+to find matches or just <CR> to accept default: Accepting default.
+
+Using  string to search for matching backup directories
+
+
+Looking for the latest backup, will display other choices!
+
+
+Default backup is the latest: /sdcard/nandroid/no_console_suspend=1/BCDS-2011031
+5-1918
+
+Other available backups are:
+
+/sdcard/nandroid/no_console_suspend=1/Backup_Android-15_LG-V10C_vierge
+/sdcard/nandroid/no_console_suspend=1/Backup_Android-22_LG-V20E_perso
+/sdcard/nandroid/no_console_suspend=1/Backup_Android-22_LG-V20E_710_perso
+/sdcard/nandroid/no_console_suspend=1/BCDS-20110314-0941
+/sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1353
+/sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1438
+
+Using G1 keyboard, enter a unique name substring to change it and <CR>
+or just <CR> to accept: Accepting default.
+
+Restore path: /sdcard/nandroid/no_console_suspend=1/BCDS-20110315-1918
+
+Verifying backup images...
+boot.img: OK
+cache.img: OK
+data.img: OK
+lgdrm.img: OK
+system.img: OK
+Flashing boot...
+
+Not flashing recovery image!
+
+Erasing /data...
+Unpacking data image...
+end of image
+Erasing /system...
+Unpacking system image...
+end of image
+Restore done
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+================================================================================
+adb device:
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>adb devices
+List of devices attached
+80A356748030094142      recovery
+
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
+================================================================================
+adb shell reboot
+--------------------------------------------------------------------------------
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>adb shell reboot
+
+D:\Mamat\android\uniflasher\masters\android-sdk-windows>
